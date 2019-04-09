@@ -15,6 +15,10 @@ int main(int argc, char *argv[])
    /*sadsadas
    dasdasdas
    dasdasd*/
+   std::cout << "sdjsakjdkjsa\n";
+   //okok
+   std::cout << "noob\n";
+
 
    return a.exec();
 }
