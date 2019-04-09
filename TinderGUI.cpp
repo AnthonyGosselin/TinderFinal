@@ -8,6 +8,7 @@
 
 QString username;		//Utilisateur actuel VARIABLE GLOBALE
 
+//Git test
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -15,7 +16,7 @@ MainWindow::MainWindow(QWidget *parent)
 	createGroupBoxConnexion();
 	createFormGroupInscrire();
 	
-	m_mainWidget = new QWidget(this);
+	m_mainWidget = new QWidget(this); 
 
 	m_btnQuitter = new QPushButton(tr("&Quitter"));
 

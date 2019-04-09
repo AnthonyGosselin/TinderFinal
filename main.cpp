@@ -3,6 +3,8 @@
 #include <QDesktopWidget>
 #include <QStyle>
 
+#include <iostream>
+
 int main(int argc, char *argv[])
 {
    QApplication a(argc, argv);
@@ -10,6 +12,7 @@ int main(int argc, char *argv[])
    w.show();
    //...
    //Hello hello...
-   //test
+   std::cout << "Testing\n"; //test2
+
    return a.exec();
 }
