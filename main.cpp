@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
    /*sadsadas
    dasdasdas
    dasdasd*/
-   std::cout << "sdjsakjdkjsa\n";
+   std::cout << "sdjsoooojsa\n";
    //okok
    std::cout << "noob\n";
    std::cout << "what is good\n";
