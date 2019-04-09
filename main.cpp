@@ -11,5 +11,9 @@ int main(int argc, char *argv[])
    MainWindow w;
    w.show();
 
+   std::cout << "sdjsakjdkjsa\n";
+   //okok
+   std::cout << "noob\n";
+
    return a.exec();
 }
