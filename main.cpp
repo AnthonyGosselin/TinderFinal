@@ -3,12 +3,14 @@
 #include <QDesktopWidget>
 #include <QStyle>
 
+#include <iostream>
+
 int main(int argc, char *argv[])
 {
    QApplication a(argc, argv);
    MainWindow w;
    w.show();
    //...
-   //test
+   std::cout << "Testing\n"; //test2
    return a.exec();
 }
