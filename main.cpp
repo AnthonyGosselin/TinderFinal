@@ -14,6 +14,7 @@ int main(int argc, char *argv[])
    std::cout << "sdjsakjdkjsa\n";
    //okok
    std::cout << "noob\n";
+   std::cout << "what is good\n";
 
    return a.exec();
 }
