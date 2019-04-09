@@ -11,5 +11,10 @@ int main(int argc, char *argv[])
    MainWindow w;
    w.show();
 
+   std::cout << "hi";
+   /*sadsadas
+   dasdasdas
+   dasdasd*/
+
    return a.exec();
 }
