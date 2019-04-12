@@ -44,6 +44,7 @@ void PhonemeRef::addInput(Input newInput) {
 
 //Ajouter par un autre PhonemeRef existant (déjà une composition d'inputs)
 void PhonemeRef::addInput(PhonemeRef newPhonemeRef) {
+	cout << "Adding PhonemeRef to PhonemeRef--------------------------------------------\n";
 	compileInput(newPhonemeRef.referenceTab);
 }
 
@@ -57,20 +58,27 @@ void PhonemeRef::compileInput(double newRefTab[NUM_FILTERS]) {
 	if (currNum > 1) {
 		for (int i = 0; i < NUM_FILTERS; i++) {
 			double nouvMoy = (referenceTab[i] * (currNum - 1) / currNum) + (newRefTab[i] / currNum); //Calcul de la moyenne à fur et a mesure
-			//cout << "Nouvelle moyenne: " << nouvMoy << " (filtre: " << i << ") \t";
-			//cout << "sommeAvant: " << referenceTab[i] << " currNum-1/currNum: " << ((currNum - 1) / currNum) << " + nouv somme: " << (newRefTab[i] / currNum) << endl;
+			cout << "Nouvelle moyenne: " << nouvMoy << " (filtre: " << i << ") \t";
+			cout << "sommeAvant: " << referenceTab[i] << " * " << ((currNum - 1) / currNum) << " + nouv somme: " << (newRefTab[i] / currNum) << endl;
 			referenceTab[i] = nouvMoy;
 		}
 	}
 	else {
 		for (int i = 0; i < NUM_FILTERS; i++) {
 			double nouvVal = newRefTab[i];
-			//cout << "Moyenne initiale: " << nouvVal << " (filtre: " << i << ")\n";
+			cout << "Moyenne initiale: " << nouvVal << " (filtre: " << i << ")\n";
 			referenceTab[i] = nouvVal;
 		}
 
 	}
 
+}
+
+void PhonemeRef::reset() {
+	for (int i = 0; i < NUM_FILTERS; i++) {
+		referenceTab[i] = 0;
+	}
+	numInputs = 0;
 }
 
 //____________CUSTOM SOUND SIGNATURE_______________

@@ -10,10 +10,11 @@
 
 #include "traitementPhonemes.h"
 
-const int NUM_REP = 1;
+const int NUM_REP = 2;
 
-class calibWindow : public QWidget
+class calibWindow: public QWidget
 {
+
 public:
 	calibWindow();
 	~calibWindow();
@@ -22,14 +23,17 @@ public:
 
 private slots:
 	void mainButtonClicked();
+	void cancelButtonClicked();
 
 private:
 	void createObjects();
 	void createLayout();
+	void createMenu();
 
 	QLabel *mainLabel;
 	QTextEdit *output;
 	QPushButton *mainButton;
+	QPushButton *cancelButton;
 	QGridLayout *layout;
 
 	bool calibrationDone = false;
@@ -37,8 +41,10 @@ private:
 	int currRep = 0;
 	PhonemeRef phonemeRefTab[NUM_PHONEMES];
 	PhonemeRef *recordingPhoneme;
+	PhonemeRef *lastRecordedPhoneme;
 	CommunicationFPGA *port;
 	bool isConnection = false;
+	bool canceledLastPhoneme = false;
 };
 
 #endif //PCH_H

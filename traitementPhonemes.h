@@ -47,6 +47,7 @@ public:
 
 	void addInput(Input newInput); //Ajouter par un input
 	void addInput(PhonemeRef newPhonemeRef); //Ajouter par un autre PhonemeRef existant (déjà une composition d'inputs) 
+	void reset();
 
 private:
 	void compileInput(double newRefTab[NUM_FILTERS]);

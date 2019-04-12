@@ -30,21 +30,32 @@ void calibWindow::createObjects()
 	output->setReadOnly(true);
 	output->setMinimumWidth(400);
 
-	mainButton = new QPushButton("Continuer");
+	mainButton = new QPushButton("Commencer");
 	connect(mainButton, &QPushButton::clicked, this, &calibWindow::mainButtonClicked);
+
+	cancelButton = new QPushButton("Annuler");
+	connect(cancelButton, &QPushButton::clicked, this, &calibWindow::cancelButtonClicked);
 }
 
 void calibWindow::createLayout()
 {
 	layout = new QGridLayout;
 
-	layout->addWidget(mainLabel, 0, 0, Qt::AlignCenter);
-	layout->addWidget(output, 1, 0);
-	layout->addWidget(mainButton, 2, 0, Qt::AlignCenter);
+	layout->addWidget(mainLabel, 0, 1, 1, 2, Qt::AlignCenter);
+	layout->addWidget(output, 1, 0, 1, 4);
+	layout->addWidget(mainButton, 2, 1);
+	layout->addWidget(cancelButton, 2, 2);
 
 	layout->setRowStretch(1, 10);
+	layout->setColumnStretch(0, 10);
+	layout->setColumnStretch(3, 10);
 
 	setLayout(layout);
+
+}
+
+void calibWindow::createMenu()
+{
 
 }
 
@@ -72,17 +83,39 @@ void activeWait(double time) {
 	}
 }
 
+void calibWindow::cancelButtonClicked()
+{
+	bool closed = false;
+	canceledLastPhoneme = true;
+	if (currRep > 0)
+		currRep--;
+	else if (currRep == 0 && currPhoneme > 0) {
+		currPhoneme--;
+		currRep = NUM_REP - 1;
+	}
+	else if (currRep == 0 && currPhoneme == 0) {
+		closed = true;
+		close(); // Même pas commencé, donc on ferme
+	}
+
+	calibrationDone = false; //Au cas où c'était la dernière mesure
+	output->clear();
+
+	if (!closed)
+		mainButtonClicked(); // Exécute le reste du code (reprise)
+}
 
 //Fonction de calibration
 void calibWindow::mainButtonClicked()
 {
 	mainButton->setEnabled(false);
+	cancelButton->setEnabled(false);
 
-	cout << "Main button clicked\n";
+	cout << "Main button fired\n";
 
 	if (!calibrationDone) {
 
-		if (currPhoneme == 0) {
+		if (currPhoneme == 0 && currRep == 0 && !canceledLastPhoneme) {
 			//FPGA setup
 			port = new CommunicationFPGA;   // Instance du port de communication
 			if (!port->estOk()) {
@@ -93,16 +126,37 @@ void calibWindow::mainButtonClicked()
 				isConnection = true;
 				writeToOutput("Connection a la carte FPGA reussie\n\n");
 			}
+			mainButton->setText("Suivant");
+			cancelButton->setText("Reprendre");
+
+			recordingPhoneme = new PhonemeRef; //La synthèse de tous les «lastRecordedPhoenme» enregistrés pour le phoneme actuel
+			lastRecordedPhoneme = new PhonemeRef;
 		}
 		isConnection = true; ///@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ enlever
+
 		if (isConnection) {
 			if (currRep == 0) {
-				recordingPhoneme = new PhonemeRef;
 				if (currPhoneme != 0)
 					output->clear();
 				writeToOutput("\n--- CALIBRATION: " + PHONEMES[currPhoneme] + " ---\n");
 				writeToOutput("Calibration: " + PHONEMES[currPhoneme], true);
 			}
+			
+			cout << "LOOP STATUS: (p: " << currPhoneme << ", r: " << currRep << ", c: " << canceledLastPhoneme << ")\n";
+			if ( !(currPhoneme == 0 && currRep == 0) ) {
+				if (!canceledLastPhoneme) {
+					recordingPhoneme->addInput(*lastRecordedPhoneme); //On sauvegarde le dernier phoneme enregistré, car l'utilisateur a appuyé sur suivant
+
+					//Vérifier si c'était la dernière lecture pour ce phonème
+					if (currRep == 0) {
+						phonemeRefTab[currPhoneme-1] = *recordingPhoneme; //On sauvegarder les données dans le tableau de la signature
+						recordingPhoneme->reset();
+					}
+				}
+
+				lastRecordedPhoneme->reset();
+			}
+			canceledLastPhoneme = false;
 
 			//Decompte...
 			activeWait(50);
@@ -117,16 +171,15 @@ void calibWindow::mainButtonClicked()
 			writeToOutput("   GO!\n");
 			//...
 
-			//recordingPhoneme->addInput(readPhonemeFromPort(*port, currPhoneme)); // ****ANCIEN****
-
 			int numProgBars = 10;
 			int currNumBars = 0;
 			double currProg = 0.0;
 			writeToOutput("   Lecture en cours: ");
+
 			//Quelques lectures par phoneme
 			for (int i = 0; i < NUM_READS; i++) {
 				//recordingPhoneme->addInput(getInputFromPort(*port, true)); //Prend une lecture
-				recordingPhoneme->addInput(generateInputTest(currPhoneme)); //Valeurs générées aléatoirement pour tester
+				lastRecordedPhoneme->addInput(generateInputTest(currPhoneme)); //Valeurs générées aléatoirement pour tester
 				Sleep(200); //... 
 
 				//Bar de progrès
@@ -149,24 +202,28 @@ void calibWindow::mainButtonClicked()
 				currRep++;
 			else {
 				writeToOutput("--- FIN: " + PHONEMES[currPhoneme] + "\n");
-				
-				phonemeRefTab[currPhoneme] = *recordingPhoneme;
 
 				currRep = 0;
 				currPhoneme++;
 				
-				if (currPhoneme >= NUM_PHONEMES)
+				if (currPhoneme >= NUM_PHONEMES) {
 					calibrationDone = true;
+					mainButton->setText("Terminer");
+				}
 			}
 
 		}
 
 		mainButton->setEnabled(true);
+		cancelButton->setEnabled(true);
 	}
 	else {
 
 		writeToOutput("--- Calibration terminee ---\n");
 		writeToOutput("Calibration terminee", true);
+
+		recordingPhoneme->addInput(*lastRecordedPhoneme); //On sauvegarde le dernier phoneme enregistré après que l'utilisateur ait appuyé sur Terminer
+		phonemeRefTab[currPhoneme - 1] = *recordingPhoneme; //On sauvegarder les données dans le tableau de la signature
 
 		//On regroupe le tout dans une signature
 		CustomSoundSignature newSignature;
@@ -178,7 +235,6 @@ void calibWindow::mainButtonClicked()
 			}
 		}
 
-		delete recordingPhoneme;
 		close();
 	}
 }

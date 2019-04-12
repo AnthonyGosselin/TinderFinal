@@ -21,8 +21,8 @@ QT_BEGIN_MOC_NAMESPACE
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_MainWindow_t {
-    QByteArrayData data[6];
-    char stringdata0[71];
+    QByteArrayData data[9];
+    char stringdata0[122];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -32,15 +32,20 @@ struct qt_meta_stringdata_MainWindow_t {
 static const qt_meta_stringdata_MainWindow_t qt_meta_stringdata_MainWindow = {
     {
 QT_MOC_LITERAL(0, 0, 10), // "MainWindow"
-QT_MOC_LITERAL(1, 11, 5), // "popUp"
-QT_MOC_LITERAL(2, 17, 0), // ""
-QT_MOC_LITERAL(3, 18, 16), // "confirmConnexion"
-QT_MOC_LITERAL(4, 35, 18), // "confirmInscription"
-QT_MOC_LITERAL(5, 54, 16) // "openSecondWindow"
+QT_MOC_LITERAL(1, 11, 12), // "popUpQuitter"
+QT_MOC_LITERAL(2, 24, 0), // ""
+QT_MOC_LITERAL(3, 25, 14), // "popUpConnexion"
+QT_MOC_LITERAL(4, 40, 16), // "popUpInscription"
+QT_MOC_LITERAL(5, 57, 16), // "confirmConnexion"
+QT_MOC_LITERAL(6, 74, 18), // "confirmInscription"
+QT_MOC_LITERAL(7, 93, 16), // "openSecondWindow"
+QT_MOC_LITERAL(8, 110, 11) // "browseImage"
 
     },
-    "MainWindow\0popUp\0\0confirmConnexion\0"
-    "confirmInscription\0openSecondWindow"
+    "MainWindow\0popUpQuitter\0\0popUpConnexion\0"
+    "popUpInscription\0confirmConnexion\0"
+    "confirmInscription\0openSecondWindow\0"
+    "browseImage"
 };
 #undef QT_MOC_LITERAL
 
@@ -50,7 +55,7 @@ static const uint qt_meta_data_MainWindow[] = {
        8,       // revision
        0,       // classname
        0,    0, // classinfo
-       4,   14, // methods
+       7,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -58,12 +63,18 @@ static const uint qt_meta_data_MainWindow[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags
-       1,    0,   34,    2, 0x08 /* Private */,
-       3,    0,   35,    2, 0x08 /* Private */,
-       4,    0,   36,    2, 0x08 /* Private */,
-       5,    0,   37,    2, 0x08 /* Private */,
+       1,    0,   49,    2, 0x08 /* Private */,
+       3,    0,   50,    2, 0x08 /* Private */,
+       4,    0,   51,    2, 0x08 /* Private */,
+       5,    0,   52,    2, 0x08 /* Private */,
+       6,    0,   53,    2, 0x08 /* Private */,
+       7,    0,   54,    2, 0x08 /* Private */,
+       8,    0,   55,    2, 0x08 /* Private */,
 
  // slots: parameters
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
@@ -78,10 +89,13 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         auto *_t = static_cast<MainWindow *>(_o);
         Q_UNUSED(_t)
         switch (_id) {
-        case 0: _t->popUp(); break;
-        case 1: _t->confirmConnexion(); break;
-        case 2: _t->confirmInscription(); break;
-        case 3: _t->openSecondWindow(); break;
+        case 0: _t->popUpQuitter(); break;
+        case 1: _t->popUpConnexion(); break;
+        case 2: _t->popUpInscription(); break;
+        case 3: _t->confirmConnexion(); break;
+        case 4: _t->confirmInscription(); break;
+        case 5: _t->openSecondWindow(); break;
+        case 6: _t->browseImage(); break;
         default: ;
         }
     }
@@ -117,13 +131,13 @@ int MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 4)
+        if (_id < 7)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 4;
+        _id -= 7;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 4)
+        if (_id < 7)
             *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 4;
+        _id -= 7;
     }
     return _id;
 }
@@ -240,8 +254,8 @@ int SecondWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     return _id;
 }
 struct qt_meta_stringdata_ThirdWindow_t {
-    QByteArrayData data[4];
-    char stringdata0[35];
+    QByteArrayData data[5];
+    char stringdata0[52];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -253,10 +267,12 @@ static const qt_meta_stringdata_ThirdWindow_t qt_meta_stringdata_ThirdWindow = {
 QT_MOC_LITERAL(0, 0, 11), // "ThirdWindow"
 QT_MOC_LITERAL(1, 12, 9), // "savePopUp"
 QT_MOC_LITERAL(2, 22, 0), // ""
-QT_MOC_LITERAL(3, 23, 11) // "cancelPopUp"
+QT_MOC_LITERAL(3, 23, 11), // "cancelPopUp"
+QT_MOC_LITERAL(4, 35, 16) // "modifPhotoProfil"
 
     },
-    "ThirdWindow\0savePopUp\0\0cancelPopUp"
+    "ThirdWindow\0savePopUp\0\0cancelPopUp\0"
+    "modifPhotoProfil"
 };
 #undef QT_MOC_LITERAL
 
@@ -266,7 +282,7 @@ static const uint qt_meta_data_ThirdWindow[] = {
        8,       // revision
        0,       // classname
        0,    0, // classinfo
-       2,   14, // methods
+       3,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -274,10 +290,12 @@ static const uint qt_meta_data_ThirdWindow[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags
-       1,    0,   24,    2, 0x08 /* Private */,
-       3,    0,   25,    2, 0x08 /* Private */,
+       1,    0,   29,    2, 0x08 /* Private */,
+       3,    0,   30,    2, 0x08 /* Private */,
+       4,    0,   31,    2, 0x08 /* Private */,
 
  // slots: parameters
+    QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
 
@@ -292,6 +310,7 @@ void ThirdWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id,
         switch (_id) {
         case 0: _t->savePopUp(); break;
         case 1: _t->cancelPopUp(); break;
+        case 2: _t->modifPhotoProfil(); break;
         default: ;
         }
     }
@@ -327,13 +346,13 @@ int ThirdWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 2)
+        if (_id < 3)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 2;
+        _id -= 3;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 2)
+        if (_id < 3)
             *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 2;
+        _id -= 3;
     }
     return _id;
 }

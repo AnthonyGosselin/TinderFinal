@@ -14,26 +14,31 @@
 #include <qpushbutton.h>
 #include <qstring.h>
 #include <qtextedit.h>
-
 #include <qpixmap.h>
+#include <qfiledialog.h>
+
+#include "calibrationWindow.h"
 
 class MainWindow : public QMainWindow
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+	MainWindow();
+	~MainWindow();
 
 	//void setPartner(QWidget *partner);
 
 private slots:
-	void popUp();
+	void popUpQuitter();
+	void popUpConnexion();
+	void popUpInscription();
 	void confirmConnexion();
 	void confirmInscription();
 	void openSecondWindow();
+	void browseImage();
 
-private: 
+private:
 
 	QWidget *m_deuxiemeFenetre;	//L'AUTRE FENETRE
 
@@ -55,12 +60,16 @@ private:
 
 	QMenuBar *m_menuBar;
 	QMenu *m_fileMenu;
-	QAction *m_exitAction;
+	QAction *m_connexionAction;
+	QAction *m_inscriptionAction;
 
 	QLabel* m_labelUsername;
 	QLabel* m_labelMDP;
 	QLabel* m_labelConfirmMDP;
 	QLabel* m_labelInscrire;
+	QLabel* m_labelDescriptionInscription;
+	QTextEdit* m_textEditDescriptionInscription;
+	QLabel *m_labelImage;
 
 	QLineEdit* m_lineEditUsername;
 	QLineEdit* m_lineEditUsernameInscrire;	//username inscription
@@ -70,6 +79,7 @@ private:
 	QPushButton* m_btnConnexion;
 	QPushButton* m_btnQuitter;
 	QPushButton* m_btnInscrire;
+	QPushButton* m_btnChoisirImage;
 };
 
 class SecondWindow : public QMainWindow
@@ -81,7 +91,7 @@ public:
 	~SecondWindow();
 
 	//void setPartner(QWidget *partner);
-	
+
 private slots:
 	void popUpAboutApp();
 	void popUpAboutMe();
@@ -90,11 +100,9 @@ private slots:
 	void calibrate();
 
 private:
-
 	QWidget *m_premiereFenetre;	//La premiere fenetre
 
 	void createMenu2();
-	void createGroupBoxInfo();
 	void createGroupBoxImage();
 	void createGroupBoxAppreciation();
 
@@ -102,18 +110,13 @@ private:
 
 	QVBoxLayout *m_secondMainLayout;
 	QMenuBar *m_menuBar2;
-	QMenu *m_fileMenu;
+	QMenu *m_optionMenu;
+	QMenu *m_helpMenu;
+	QAction *m_parametreCompte;
 	QAction *m_aboutAppAction;
 	QAction *m_aboutMeAction;
-	QMenu *m_optionMenu;
 	QAction *m_calibrateAction;
 
-	QGroupBox *m_groupBoxInfo;
-	QGridLayout *m_gridLayoutInfo;
-	QLabel *m_labelTextInfo;
-	QLineEdit *m_lineEditUsernameInfo;
-	QPushButton * m_btnParametre;
-	
 	QGroupBox *m_groupBoxImage;
 	QVBoxLayout *m_vLayoutImage;
 	QLabel *m_imageLabel;
@@ -144,6 +147,7 @@ public:
 private slots:
 	void savePopUp();
 	void cancelPopUp();
+	void modifPhotoProfil();
 
 private:
 	void createGroupBoxCompte();
@@ -161,7 +165,7 @@ private:
 	QHBoxLayout *m_bottomLayout;
 	QPushButton *m_btnSave;
 	QPushButton *m_btnCancel;
-	
+
 
 };
 #endif // MAINWINDOW_H
