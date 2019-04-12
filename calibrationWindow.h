@@ -7,16 +7,18 @@
 #include <qpushbutton.h>
 #include <qboxlayout.h>
 #include <qtextedit.h>
+#include <qscrollbar.h>
 
 #include "traitementPhonemes.h"
 
 const int NUM_REP = 2;
+const double CALIB_READ_TIME = 2000; //ms
 
 class calibWindow: public QWidget
 {
 
 public:
-	calibWindow();
+	calibWindow(CommunicationFPGA &port);
 	~calibWindow();
 
 	void writeToOutput(std::string msg, bool writeToTitle = false);
@@ -29,6 +31,7 @@ private:
 	void createObjects();
 	void createLayout();
 	void createMenu();
+	void connectFPGA(bool fpga_connected);
 
 	QLabel *mainLabel;
 	QTextEdit *output;
@@ -42,9 +45,10 @@ private:
 	PhonemeRef phonemeRefTab[NUM_PHONEMES];
 	PhonemeRef *recordingPhoneme;
 	PhonemeRef *lastRecordedPhoneme;
-	CommunicationFPGA *port;
 	bool isConnection = false;
 	bool canceledLastPhoneme = false;
+
+	CommunicationFPGA *ptr_port;
 };
 
 #endif //PCH_H

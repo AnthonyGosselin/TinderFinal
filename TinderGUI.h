@@ -24,7 +24,7 @@ class MainWindow : public QMainWindow
 	Q_OBJECT
 
 public:
-	MainWindow();
+	MainWindow(CommunicationFPGA &port);
 	~MainWindow();
 
 	//void setPartner(QWidget *partner);
@@ -80,6 +80,8 @@ private:
 	QPushButton* m_btnQuitter;
 	QPushButton* m_btnInscrire;
 	QPushButton* m_btnChoisirImage;
+
+	CommunicationFPGA *ptr_port;
 };
 
 class SecondWindow : public QMainWindow
@@ -87,7 +89,7 @@ class SecondWindow : public QMainWindow
 	Q_OBJECT
 
 public:
-	SecondWindow(QWidget *parent = 0);
+	SecondWindow(CommunicationFPGA &port, QWidget *parent = 0);
 	~SecondWindow();
 
 	//void setPartner(QWidget *partner);
@@ -134,6 +136,8 @@ private:
 
 	QHBoxLayout *m_bottomLayout;
 	QPushButton *m_btnQuit;
+
+	CommunicationFPGA *ptr_port;
 };
 
 class ThirdWindow : public QMainWindow

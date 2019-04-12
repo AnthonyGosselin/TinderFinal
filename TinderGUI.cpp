@@ -6,7 +6,8 @@
 
 QString username;		//Utilisateur + description actuel - VARIABLE GLOBALE
 QString description = "ceci est la description de l'utilisateur actuellement connecte. (modifiable)";
-MainWindow::MainWindow()
+
+MainWindow::MainWindow(CommunicationFPGA &port)
 {
 	createMenu();
 	createGroupBoxConnexion();
@@ -31,6 +32,8 @@ MainWindow::MainWindow()
 	setCentralWidget(m_mainWidget);
 	//setFixedSize(900,800);				//MIEUX DE PAS METTRE DE FIXED SIZE CÔTÉ ERGONOMIE OU PAS GRAVE ????????????????
 	setWindowTitle("Tinder.net - Connexion");
+
+	*ptr_port = port;
 }
 
 MainWindow::~MainWindow()
@@ -193,7 +196,7 @@ void MainWindow::confirmInscription()
 void MainWindow::openSecondWindow()
 {
 	QWidget *w2 = new QWidget;
-	w2 = new SecondWindow();
+	w2 = new SecondWindow(*ptr_port);
 
 	w2->setWindowTitle("Bienvenue " + username);
 	w2->show();
@@ -203,12 +206,14 @@ void MainWindow::openSecondWindow()
 	int y = (screenGeometry.height() - w2->height()) / 2;
 	w2->move(x, y);
 
+	//Insérer boucle de lecture ici
+
 	close();
 }
 
 //DEUXIEME FENETRE----------------------------------------------------------------------------------------------------------------------------
 
-SecondWindow::SecondWindow(QWidget *parent)
+SecondWindow::SecondWindow(CommunicationFPGA &port, QWidget *parent)
 	: QMainWindow(parent)
 {
 	m_btnQuit = new QPushButton(tr("&Deconnexion"));
@@ -230,6 +235,8 @@ SecondWindow::SecondWindow(QWidget *parent)
 	m_secondMainLayout->addLayout(m_bottomLayout);
 
 	setCentralWidget(m_secondWidget);
+
+	*ptr_port = port;
 }
 
 SecondWindow::~SecondWindow()
@@ -308,7 +315,7 @@ void SecondWindow::createGroupBoxAppreciation()
 void SecondWindow::calibrate()
 {
 	QWidget *calib = new QWidget;
-	calib = new calibWindow;
+	calib = new calibWindow(*ptr_port);
 
 	calib->setMinimumSize(400, 200);
 	calib->show();
@@ -333,7 +340,7 @@ void SecondWindow::deconnexionPopUp()
 
 	if (reply == QMessageBox::Yes) {
 		QWidget *w1 = new QWidget;			//Recréation et réaffichage de la premiere fenetre avec le constructeur de MainWindow
-		w1 = new MainWindow();
+		w1 = new MainWindow(*ptr_port);
 
 		w1->show();
 		close();			//Ferme this, étant la deuxieme fenetre

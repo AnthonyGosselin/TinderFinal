@@ -6,6 +6,7 @@
 //Externe
 #include <iostream>
 #include <string>
+#include <chrono>
 //FPGA
 #include "CommunicationFPGA.h"
 //Qt
@@ -16,6 +17,8 @@ const int NUM_PHONEMES = 4;
 const double MAX_VALEUR = 255;
 const double DETECTION_TOLERANCE = 0.05; // (en %) Si le signal pour un filtre a un écart plus grand que ce pourcentage, il n'y aura pas de match
 const int NUM_READS = 5;
+const int READ_TIME = 0.5;
+
 
 const string PHONEMES[NUM_PHONEMES] = {
 	"AH", // 0
@@ -69,10 +72,10 @@ Input generateInputTest(int n);
 Input getInputFromPort(CommunicationFPGA &port, bool test = false);
 PhonemeRef readPhonemeFromPort(CommunicationFPGA &port, int p = 0);
 
-//Pourrait en sort, durant la calibration, que tu ne peux pas enregistrer un phonème s'il est trop similaire à un phonème déjà enregistré (s'il y a des problèmes de collisions)
-CustomSoundSignature calibration(CommunicationFPGA &port);
-
 //Retourne le numéro du phonème détecté
 int identifyPhoneme(CustomSoundSignature refSignature, PhonemeRef phonemeInput);
+
+void activeWait(double time);
+void loopReadPhoneme(CommunicationFPGA &port, CustomSoundSignature &newSignature); //Lecture
 
 #endif //APP_PROJ

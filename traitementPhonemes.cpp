@@ -21,7 +21,7 @@ Input::Input(double newFilterVals[NUM_FILTERS]) {
 Input::Input(int newFilterVals[NUM_FILTERS]) {
 	for (int i = 0; i < NUM_FILTERS; i++) {
 		double newVal = (double)newFilterVals[i] / MAX_VALEUR; // Conversion se fait ici!
-		//cout << "New val for filter #" << i << ": " << newVal << endl;
+		cout << "New val for filter #" << i << ": " << newVal << endl;
 		filterVals[i] = newVal;
 	}
 }
@@ -100,6 +100,7 @@ double randRange(int low, int high) {
 	return low + (rand() % (high - low + 1));
 }
 
+//Fonction de test
 Input generateInputTest(int n) {
 	double randomTab[NUM_FILTERS];
 	for (int i = 0; i < NUM_FILTERS; i++) {
@@ -111,6 +112,7 @@ Input generateInputTest(int n) {
 	return newInput;
 }
 
+//Prend une mesure unitaire
 Input getInputFromPort(CommunicationFPGA &port, bool test) {
 	int filterInputTab[4];
 	
@@ -143,14 +145,24 @@ Input getInputFromPort(CommunicationFPGA &port, bool test) {
 	return newInput;
 }
 
+//Prend la moyenne de plusieurs mesures
 PhonemeRef readPhonemeFromPort(CommunicationFPGA &port, int p) {
 
 	PhonemeRef newRef;
+	double waitTime = READ_TIME / NUM_READS;
 	//Quelques lectures par phoneme
 	for (int i = 0; i < NUM_READS; i++) {
+		auto initialTime = chrono::high_resolution_clock::now(); //Commence le timer
+
 		newRef.addInput(getInputFromPort(port, true)); //Vraies valeurs
 		//newRef.addInput(generateInputTest(p)); //Valeurs générées aléatoirement pour tester
-		Sleep(10); //... 
+
+		auto endTime = chrono::high_resolution_clock::now(); //Arrête le timer
+		chrono::duration<double> elapsed = endTime - initialTime;
+
+		double newWaitTime = (waitTime - elapsed.count() > 0) ? (waitTime - elapsed.count()) : 0;
+
+		Sleep(waitTime); //... 
 	}
 
 	return newRef;
@@ -193,4 +205,39 @@ int identifyPhoneme(CustomSoundSignature refSignature, PhonemeRef phonemeInput) 
 	}
 
 	return multipleMatches ? -1 : matchedPhoneme; // Si l'on détecte plus d'un phonème, on retourne qu'il n'y a pas de match
+}
+
+//Permet de faire Sleep() sans geler la fenêtre active
+void activeWait(double time) {
+	double count = 0;
+	double inc = 5; //ms
+
+	while (count < time) {
+		auto initialTime = chrono::high_resolution_clock::now(); //Commence le timer
+
+		Sleep(inc);
+		QCoreApplication::processEvents();
+
+		auto endTime = chrono::high_resolution_clock::now(); //Arrête le timer
+		chrono::duration<double> elapsed = endTime - initialTime;
+
+		count += (elapsed.count() * 1000); // .count() returns in seconds...
+	}
+}
+
+//Boucle de lecture principale du programme
+void loopReadPhoneme(CommunicationFPGA &port, CustomSoundSignature &newSignature) {
+	while (true) {
+
+		int matchPhoneme = identifyPhoneme(newSignature, readPhonemeFromPort(port));
+		if (matchPhoneme < 0)
+			cout << "No match\n";
+		else {
+			cout << "Matched: " << matchPhoneme << endl;
+			//Appeler la fonction appropriée
+
+			//Pourrais tenter d'identifier le phoneme encore quelques fois ici pour valider (va falloir réduire le temps de lecture de phonème)
+		}
+		activeWait(100);
+	}
 }

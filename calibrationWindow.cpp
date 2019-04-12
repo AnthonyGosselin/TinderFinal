@@ -4,23 +4,39 @@
 
 using namespace std;
 
-calibWindow::calibWindow()
+calibWindow::calibWindow(CommunicationFPGA &port)
 {
 	cout << "Window created\n";
 
 	createObjects();
 	createLayout();
+	
+	*ptr_port = port;
+	
 }
 
 calibWindow::~calibWindow()
 {
-	delete mainLabel;
+	/*delete mainLabel;
 	delete output;
 	delete mainButton;
 	delete layout;
-	delete port;
+	//delete port;*/
 }
 
+void calibWindow::connectFPGA(bool fpga_connected) {
+	//FPGA setup
+	if (!ptr_port->estOk()) {
+		cout << "Erreur: " << ptr_port->messageErreur() << endl;
+		writeToOutput("Echec de la connection a la carte FPGA\n");
+		mainButton->setEnabled(false);
+	}
+	else {
+		isConnection = true;
+		writeToOutput("Connection a la carte FPGA reussie\n\n");
+	}
+}
+ 
 void calibWindow::createObjects()
 {
 	mainLabel = new QLabel("Calibration");
@@ -33,7 +49,7 @@ void calibWindow::createObjects()
 	mainButton = new QPushButton("Commencer");
 	connect(mainButton, &QPushButton::clicked, this, &calibWindow::mainButtonClicked);
 
-	cancelButton = new QPushButton("Annuler");
+	cancelButton = new QPushButton("Quitter");
 	connect(cancelButton, &QPushButton::clicked, this, &calibWindow::cancelButtonClicked);
 }
 
@@ -69,18 +85,9 @@ void calibWindow::writeToOutput(string msg, bool writeToTitle)
 	else
 		mainLabel->setText(newCharStr);
 
+	output->verticalScrollBar()->setValue(output->verticalScrollBar()->maximum()); // Replacer la fenêtre pour qu'elle toujours le dernier élément écrit
+
 	delete[]newCharStr;
-}
-
-void activeWait(double time) {
-	double count = 0;
-	double inc = 10; //ms
-
-	while (count < time) {
-		Sleep(inc);
-		QCoreApplication::processEvents();
-		count += inc;
-	}
 }
 
 void calibWindow::cancelButtonClicked()
@@ -116,23 +123,16 @@ void calibWindow::mainButtonClicked()
 	if (!calibrationDone) {
 
 		if (currPhoneme == 0 && currRep == 0 && !canceledLastPhoneme) {
-			//FPGA setup
-			port = new CommunicationFPGA;   // Instance du port de communication
-			if (!port->estOk()) {
-				cout << "Erreur: " << port->messageErreur() << endl;
-				writeToOutput("Echec de la connection a la carte FPGA\n");
-			}
-			else {
-				isConnection = true;
-				writeToOutput("Connection a la carte FPGA reussie\n\n");
-			}
 			mainButton->setText("Suivant");
 			cancelButton->setText("Reprendre");
 
 			recordingPhoneme = new PhonemeRef; //La synthèse de tous les «lastRecordedPhoenme» enregistrés pour le phoneme actuel
 			lastRecordedPhoneme = new PhonemeRef;
 		}
-		isConnection = true; ///@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ enlever
+
+		//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+		/**\@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/ // isConnection = true;   ///@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ À enlever
+		//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 		if (isConnection) {
 			if (currRep == 0) {
@@ -159,9 +159,9 @@ void calibWindow::mainButtonClicked()
 			canceledLastPhoneme = false;
 
 			//Decompte...
-			activeWait(50);
+			activeWait(500);
 			writeToOutput("   Dites: " + PHONEMES[currPhoneme] + " dans...\n");
-			activeWait(25);
+			activeWait(250);
 			writeToOutput("   3\n");
 			activeWait(100);
 			writeToOutput("   2\n");
@@ -174,19 +174,28 @@ void calibWindow::mainButtonClicked()
 			int numProgBars = 10;
 			int currNumBars = 0;
 			double currProg = 0.0;
+			double waitTime = CALIB_READ_TIME / NUM_READS;
+			double newWaitTime = 0;
 			writeToOutput("   Lecture en cours: ");
 
 			//Quelques lectures par phoneme
 			for (int i = 0; i < NUM_READS; i++) {
-				//recordingPhoneme->addInput(getInputFromPort(*port, true)); //Prend une lecture
-				lastRecordedPhoneme->addInput(generateInputTest(currPhoneme)); //Valeurs générées aléatoirement pour tester
-				Sleep(200); //... 
+				auto initialTime = chrono::high_resolution_clock::now(); //Commence le timer
+
+				recordingPhoneme->addInput(getInputFromPort(*ptr_port, true)); //Prend une lecture
+				//lastRecordedPhoneme->addInput(generateInputTest(currPhoneme)); //Valeurs générées aléatoirement pour tester
+				
+				auto endTime = chrono::high_resolution_clock::now(); //Arrête le timer
+				chrono::duration<double> elapsed = endTime - initialTime;
+
+				//cout << "Elapsed: " << elapsed.count() << endl;
+				newWaitTime = (waitTime - elapsed.count() > 0) ? (waitTime - elapsed.count()) : 0;
+				Sleep(newWaitTime); //... 
 
 				//Bar de progrès
 				QCoreApplication::processEvents();
 				currProg = ((i + 1) / (double)NUM_READS);
 				int newNumBars = (int)(numProgBars * currProg);  //Va arrondir vers le bas, car le type est int
-				//cout << i << " : " << numProgBars << " * " << currProg << " = " << newNumBars << endl;
 				
 				while (newNumBars > currNumBars) {
 					writeToOutput("=");

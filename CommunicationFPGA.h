@@ -29,7 +29,6 @@ unsigned const int LECT_CAN3 = 6;
 
 unsigned const int ECRI_LED = 10;
 
-
 class CommunicationFPGA {
 public:
 	CommunicationFPGA();
