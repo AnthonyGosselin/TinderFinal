@@ -23,67 +23,88 @@ fluxy::~fluxy()
 	save();
 }
 
-
-void fluxy::addAccount(string newAccount, string password, string description) {
-	donnee.name = toLower(newAccount);
-	donnee.password = password;
-	donnee.description = description;
-	accounts += donnee;
+int fluxy::addAccount(string newAccount, string password, string description) {
+	info a;
+	for (int i = 0; i < nbUsers; i++) {
+		if (newAccount == accounts[i].name) {
+			return -1;
+		}
+	}
+	a.name = toLower(newAccount);
+	a.password = password;
+	if (description == "") {
+		a.description = "Je suis une coquille vide dépourvu d'âme.";
+	}
+	else a.description = description;
+	a.path = "no path";
+	accounts += a;
 	nbUsers++;
+	cu = nbUsers - 1;
+	currentUser = accounts[cu];
+	pickUser();
+	return 0;
 }
 
-void fluxy::like() {
+int fluxy::like() {
 	int i = 0;
-	while (currentPray.like[i] != "\0") {
+	while (currentPray.like[i] != "") {
 		i++;
 	}
 	currentPray.like[i] = currentUser.name;
 	i = 0;
-	while (currentUser.iLike[i] != "\0") {
+	while (currentUser.iLike[i] != "") {
 		i++;
 	}
 	currentUser.iLike[i] = currentPray.name;
 	tempSave(currentUser, cu, currentPray, cp);
-	//rate();
-	//string b = pickUser();
-	//cout << "what do you think of" << b << endl;
-	cout << currentUser.name << " you have liked " << currentPray.name << endl;
+	int j = match();
+
+	if (pickUser() == -1) {
+		if (j == 0) {
+			return 2;
+		}
+		return 1;
+	}
+	return j;
 }
-void fluxy::dislike() {
+int fluxy::dislike() {
 	{
 		int i = 0;
-		while (currentPray.dislike[i] != "\0") {
+		while (currentPray.dislike[i] != "") {
 			i++;
 		}
 		currentPray.dislike[i] = currentUser.name;
 		i = 0;
-		while (currentUser.iDislike[i] != "\0") {
+		while (currentUser.iDislike[i] != "") {
 			i++;
 		}
 		currentUser.iDislike[i] = currentPray.name;
 		tempSave(currentUser, cu, currentPray, cp);
-		//rate();
-		//string b = pickUser();
-		//cout << "what do you think of" << b << endl;
-		cout << currentUser.name << " you have disliked " << currentPray.name << endl;
+		if (pickUser() == -1) {
+			return 1;
+		}
 	}
 }
-void fluxy::superLike() {
+int fluxy::superLike() {
 	int i = 0;
-	while (currentPray.superLike[i] != "\0") {
+	while (currentPray.superLike[i] != "") {
 		i++;
 	}
 	currentPray.superLike[i] = currentUser.name;
 	i = 0;
-	while (currentUser.iSuperLike[i] != "\0") {
+	while (currentUser.iSuperLike[i] != "") {
 		i++;
 	}
 	currentUser.iSuperLike[i] = currentPray.name;
 	tempSave(currentUser, cu, currentPray, cp);
-	//rate();
-	//string b = pickUser();
-	//cout << "what do you think of" << b << endl;
-	cout << currentUser.name << " you have superliked " << currentPray.name << endl;
+	int j = match();
+	if (pickUser() == -1) {
+		if (j == 0) {
+			return 2;
+		}
+		return 1;
+	}
+	return j;
 }
 
 
@@ -91,22 +112,16 @@ void fluxy::superLike() {
 int fluxy::login(string name, string password) {
 	int i = 0;
 	info a = accounts[i];
-	while (a.name != toLower(name) && i<nbUsers) { 
-		//cout << a.name << "?=" << toLower(name) << endl;
+	while (a.name != toLower(name) && i < nbUsers) {
 		i++;
 		a = accounts[i];
 	}
-	//cout << a.name << "=" << toLower(name) << endl;
 	if (a.password != password) {
-		system("CLS");
-		cout << "That is the wrong combination of username and password" << endl;
 		return -1;
 	}
 	currentUser = a;
 	cu = i;
-	cout << "You are logged in as " << currentUser.name << endl;
-	//string judge = pickUser();
-	//cout << "what do you think of" << judge << endl;
+	pickUser();
 	return 0;
 }
 //string fluxy::sponsor() {}
@@ -124,64 +139,87 @@ void fluxy::fillList(string stuff, string *c) {
 	}
 }
 
-void fluxy::listAccounts() {
+int fluxy::listAccounts() {
 	ifstream fichier(CoorsLight);
+	info b;
 	if (fichier) {
 		string ligne;
 		string a;
 		getline(fichier, a);
 		nbUsers = stringToInt(a);
 		while (getline(fichier, ligne)) {
-			donnee.name = ligne;
+			b.name = ligne;
 			getline(fichier, ligne);
-			donnee.password = ligne;
+			b.password = ligne;
 			getline(fichier, ligne);
-			fillList(ligne, donnee.like);
+			fillList(ligne, b.like);
 			getline(fichier, ligne);
-			fillList(ligne, donnee.dislike);
+			fillList(ligne, b.dislike);
 			getline(fichier, ligne);
-			fillList(ligne, donnee.superLike);
+			fillList(ligne, b.superLike);
 			getline(fichier, ligne);
-			fillList(ligne, donnee.iLike);
+			fillList(ligne, b.iLike);
 			getline(fichier, ligne);
-			fillList(ligne, donnee.iDislike);
+			fillList(ligne, b.iDislike);
 			getline(fichier, ligne);
-			fillList(ligne, donnee.iSuperLike);
+			fillList(ligne, b.iSuperLike);
 			getline(fichier, ligne);
-			donnee.description = ligne;
+			b.description = ligne;
 			getline(fichier, ligne);
-			donnee.rate = ligne;
+			b.path = ligne;
 
-			accounts += donnee;
+			accounts += b;
+			b.name = "\0";
+			b.password = "\0";
+			for (int i = 0; i <= 100; i++) {
+				b.like[i] = "\0";
+				b.dislike[i] = "\0";
+				b.superLike[i] = "\0";
+				b.iLike[i] = "\0";
+				b.iDislike[i] = "\0";
+				b.iSuperLike[i] = "\0";
+			}
+			b.description = "\0";
+			b.path = "\0";
 		}
+		return 0;
 	}
 	else {
-		cout << "Erreur impossible d'ouvrir le fichier" << endl;
+		return -1;
 	}
 }
 // Change for loops for while loops that stop at NULL so doesn't go through the entire array every time (if you have time)
-string fluxy::pickUser() {
+string fluxy::getName_P() {
+	return currentPray.name;
+}
+
+string fluxy::getName_U() {
+	return currentUser.name;
+}
+
+int fluxy::pickUser() {
 	string b = "There is no one left in your queue :/";
 	int i = 0;
 	int reset = 0;
-	info a = accounts[0];
+	if (cu == 0) i++;
+	info a = accounts[i];
 	while (reset == 0 && i < nbUsers) {
 		reset = 1;
-		for (int j = 0; j < currentUser.iLike->size(); j++) {
+		for (int j = 0; j < 100; j++) {
 			if (a.name == currentUser.iLike[j] && i < nbUsers || a.name == currentUser.name && i < nbUsers) {
 				i++;
 				a = accounts[i];
 				reset = 0;
 			}
 		}
-		for (int k = 0; k < currentUser.iDislike->size(); k++) {
+		for (int k = 0; k < 100; k++) {
 			if (a.name == currentUser.iDislike[k] && i < nbUsers || a.name == currentUser.name && i < nbUsers) {
 				i++;
 				a = accounts[i];
 				reset = 0;
 			}
 		}
-		for (int l = 0; l < currentUser.iSuperLike->size(); l++) {
+		for (int l = 0; l < 100; l++) {
 			if (a.name == currentUser.iSuperLike[l] && i < nbUsers || a.name == currentUser.name && i < nbUsers) {
 				i++;
 				a = accounts[i];
@@ -193,9 +231,9 @@ string fluxy::pickUser() {
 		currentPray = a;
 		cp = i;
 		cout << "Your pray is " << currentPray.name << endl;
-		return currentPray.name;
+		return 0;
 	}
-	else return b;
+	else return -1;
 }
 
 int fluxy::getNbUsers() {
@@ -214,7 +252,7 @@ void fluxy::save() {
 	info a;
 	if (fichier) {
 		fichier << nbUsers << endl;
-		for (int i = 0; i<nbUsers; i++) {
+		for (int i = 0; i < nbUsers; i++) {
 			a = accounts[i];
 			fichier << a.name << endl;
 			fichier << a.password << endl;
@@ -255,7 +293,7 @@ void fluxy::save() {
 			}
 			fichier << endl;
 			fichier << a.description << endl;
-			fichier << a.rate << endl;
+			fichier << a.path << endl;
 		}
 	}
 
@@ -270,7 +308,7 @@ void fluxy::listUsers() {
 	info a;
 	for (int i = 0; i < nbUsers; i++) {
 		a = accounts[i];
-		cout << i+1 << "- " << a.name << endl;
+		cout << i + 1 << "- " << a.name << endl;
 	}
 }
 
@@ -349,15 +387,15 @@ void fluxy::tempSave(info a, int aa) {
 	}
 }
 
-bool fluxy::changePassword(string password, string password_check) {
+int fluxy::changePassword(string password, string password_check) {
 	if (password != password_check) {
-		return false;
+		return -1;
 	}
 	else {
 		currentUser.password = password;
 	}
 	tempSave(currentUser, cu);
-	return true;
+	return 0;
 }
 
 void fluxy::changeDescription(string description) {
@@ -366,8 +404,11 @@ void fluxy::changeDescription(string description) {
 
 }
 
-string fluxy::checkRate(){
-	return currentUser.rate;
+string fluxy::getPath_U() {
+	return currentUser.path;
+}
+string fluxy::getPath_P() {
+	return currentPray.path;
 }
 
 string fluxy::checkDescription_U() {
@@ -378,64 +419,64 @@ string fluxy::checkDescription_P() {
 	return currentPray.description;
 }
 
-void fluxy::rate() {
+/*void fluxy::rate() {
 	string p_rated;
 	float p_rating;
 	int p_totalL = 0;
 	int p_total = 0;
 	int i = 0;
-		while (currentPray.like[i] != "\0") {
-			p_total++;
-		}
-		i = 0;
-		while (currentPray.like[i] != "\0") {
-			p_totalL++;
-			p_total++;
-		}
-		while (currentPray.superLike[i] != "\0") {
-			p_totalL++;
-			p_total++;
-		}
-		if (p_total == 0) {
-			currentPray.rate = "none";
-		}
-		else {
-			p_rating = p_totalL / p_total;
-			p_rating = p_rating * 100;
-			p_rating = round(p_rating);
-			p_rated = to_string(p_rating);
-			currentPray.rate = p_rated;
-		}
-		string u_rated;
-		float u_rating;
-		int u_totalL = 0;
-		int u_total = 0;
-		i = 0;
-		while (currentUser.like[i] != "\0") {
-			u_total++;
-		}
-		i = 0;
-		while (currentUser.like[i] != "\0") {
-			u_totalL++;
-			u_total++;
-		}
-		while (currentUser.superLike[i] != "\0") {
-			u_totalL++;
-			u_total++;
-		}
-		if (u_total == 0) {
-			currentUser.rate = "none";
-		}
-		else {
-			u_rating = u_totalL / u_total;
-			u_rating = u_rating * 100;
-			u_rating = round(u_rating);
-			u_rated = to_string(u_rating);
-			currentUser.rate = u_rated;
-		}
-}
+	while (currentPray.like[i] != "\0") {
+		p_total++;
+	}
+	i = 0;
+	while (currentPray.like[i] != "\0") {
+		p_totalL++;
+		p_total++;
+	}
+	while (currentPray.superLike[i] != "\0") {
+		p_totalL++;
+		p_total++;
+	}
+	if (p_total == 0) {
+		currentPray.rate = "none";
+	}
+	else {
+		p_rating = p_totalL / p_total;
+		p_rating = p_rating * 100;
+		p_rating = round(p_rating);
+		p_rated = to_string(p_rating);
+		currentPray.rate = p_rated;
+	}
+	string u_rated;
+	float u_rating;
+	int u_totalL = 0;
+	int u_total = 0;
+	i = 0;
+	while (currentUser.like[i] != "\0") {
+		u_total++;
+	}
+	i = 0;
+	while (currentUser.like[i] != "\0") {
+		u_totalL++;
+		u_total++;
+	}
+	while (currentUser.superLike[i] != "\0") {
+		u_totalL++;
+		u_total++;
+	}
+	if (u_total == 0) {
+		currentUser.rate = "none";
+	}
+	else {
+		u_rating = u_totalL / u_total;
+		u_rating = u_rating * 100;
+		u_rating = round(u_rating);
+		u_rated = to_string(u_rating);
+		currentUser.rate = u_rated;
+	}
+}*/
 
-void fluxy::logout(){
+void fluxy::logout() {
 	save();
 }
 
@@ -444,19 +485,25 @@ void fluxy::delete_account() {
 	nbUsers--;
 }
 
-bool fluxy::match() {
-	int i = 0;
-	while (currentUser.like[i] != "\0") {
-		i++;
+int fluxy::match() {
+	for (int i = 0; i < currentUser.like->size(); i++) {
 		if (currentPray.name == currentUser.like[i]) {
-			return true;
+			return 0;
 		}
 	}
-	while (currentUser.superLike[i] != "\0") {
-		i++;
+	for (int i = 0; i < currentUser.superLike->size(); i++) {
 		if (currentPray.name == currentUser.superLike[i]) {
-			return true;
+			return 0;
 		}
 	}
-	return false;
+	return -1;
+}
+
+void fluxy::setPath(string newPath) {
+	currentUser.path = newPath;
+	tempSave(currentUser, cu);
+}
+
+string fluxy::getPass() {
+	return currentUser.password;
 }

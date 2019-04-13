@@ -15,30 +15,32 @@
 #include <qstring.h>
 #include <qtextedit.h>
 #include <qpixmap.h>
+
+#include <qstringlist.h>
 #include <qfiledialog.h>
 
-#include "calibrationWindow.h"
+#include "fluxy.h"
 
 class MainWindow : public QMainWindow
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
-	MainWindow(CommunicationFPGA &port);
-	~MainWindow();
+    MainWindow(QWidget *parent = 0);
+    ~MainWindow();
 
 	//void setPartner(QWidget *partner);
 
 private slots:
 	void popUpQuitter();
 	void popUpConnexion();
+	void browseImage();
 	void popUpInscription();
 	void confirmConnexion();
 	void confirmInscription();
 	void openSecondWindow();
-	void browseImage();
 
-private:
+private: 
 
 	QWidget *m_deuxiemeFenetre;	//L'AUTRE FENETRE
 
@@ -67,8 +69,7 @@ private:
 	QLabel* m_labelMDP;
 	QLabel* m_labelConfirmMDP;
 	QLabel* m_labelInscrire;
-	QLabel* m_labelDescriptionInscription;
-	QTextEdit* m_textEditDescriptionInscription;
+	QLabel *m_labelDescriptionInscription;
 	QLabel *m_labelImage;
 
 	QLineEdit* m_lineEditUsername;
@@ -76,12 +77,11 @@ private:
 	QLineEdit* m_lineEditMDP;
 	QLineEdit* m_lineEditMDPInscrire;		//mdp inscription
 	QLineEdit* m_lineEditConfirmMDP;		//confirmation mdp inscription
+	QTextEdit *m_textEditDescriptionInscription;
 	QPushButton* m_btnConnexion;
 	QPushButton* m_btnQuitter;
 	QPushButton* m_btnInscrire;
-	QPushButton* m_btnChoisirImage;
-
-	CommunicationFPGA *ptr_port;
+	QPushButton *m_btnChoisirImage;
 };
 
 class SecondWindow : public QMainWindow
@@ -89,17 +89,19 @@ class SecondWindow : public QMainWindow
 	Q_OBJECT
 
 public:
-	SecondWindow(CommunicationFPGA &port, QWidget *parent = 0);
+	SecondWindow(QWidget *parent = 0);
 	~SecondWindow();
 
 	//void setPartner(QWidget *partner);
-
+	
 private slots:
 	void popUpAboutApp();
 	void popUpAboutMe();
 	void deconnexionPopUp();
 	void openThirdWindow();
-	void calibrate();
+	void dislikeUser();
+	void likeUser();
+	void superlikeUser();
 
 private:
 	QWidget *m_premiereFenetre;	//La premiere fenetre
@@ -117,8 +119,7 @@ private:
 	QAction *m_parametreCompte;
 	QAction *m_aboutAppAction;
 	QAction *m_aboutMeAction;
-	QAction *m_calibrateAction;
-
+	
 	QGroupBox *m_groupBoxImage;
 	QVBoxLayout *m_vLayoutImage;
 	QLabel *m_imageLabel;
@@ -136,8 +137,6 @@ private:
 
 	QHBoxLayout *m_bottomLayout;
 	QPushButton *m_btnQuit;
-
-	CommunicationFPGA *ptr_port;
 };
 
 class ThirdWindow : public QMainWindow
@@ -169,7 +168,7 @@ private:
 	QHBoxLayout *m_bottomLayout;
 	QPushButton *m_btnSave;
 	QPushButton *m_btnCancel;
-
+	
 
 };
 #endif // MAINWINDOW_H

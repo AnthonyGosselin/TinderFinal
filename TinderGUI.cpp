@@ -4,15 +4,18 @@
 #include <qdesktopwidget.h>
 #include <qapplication.h>
 
-QString username;		//Utilisateur + description actuel - VARIABLE GLOBALE
-QString description = "ceci est la description de l'utilisateur actuellement connecte. (modifiable)";
+//QString description = "Ceci est la description par default. Pour la modifier, clickez sur option, parametre compte.";
+fluxy core;
+QString path;
 
-MainWindow::MainWindow(CommunicationFPGA &port)
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
 {
+	path = "";
 	createMenu();
 	createGroupBoxConnexion();
 	createFormGroupInscrire();
-
+	
 	m_mainWidget = new QWidget(this);
 
 	m_btnQuitter = new QPushButton(tr("&Quitter"));
@@ -32,12 +35,11 @@ MainWindow::MainWindow(CommunicationFPGA &port)
 	setCentralWidget(m_mainWidget);
 	//setFixedSize(900,800);				//MIEUX DE PAS METTRE DE FIXED SIZE CÔTÉ ERGONOMIE OU PAS GRAVE ????????????????
 	setWindowTitle("Tinder.net - Connexion");
-
-	*ptr_port = port;
 }
 
 MainWindow::~MainWindow()
 {
+	//core.save();
 	//Destructeur de la première window
 }
 
@@ -45,7 +47,6 @@ MainWindow::~MainWindow()
 //{
 //	m_deuxiemeFenetre = partner;
 //}
-
 
 void MainWindow::createMenu()
 {
@@ -63,7 +64,7 @@ void MainWindow::createGroupBoxConnexion()
 {
 	m_GroupBoxConnexion = new QGroupBox(tr("Deja un compte? Connecte toi!"));
 	m_formLayoutConnexion = new QFormLayout;
-
+	
 	m_labelUsername = new QLabel("Username: ", this);
 	m_lineEditUsername = new QLineEdit(this);
 	m_labelMDP = new QLabel("Mot de passe: ", this);
@@ -94,7 +95,7 @@ void MainWindow::createFormGroupInscrire()
 	m_labelConfirmMDP = new QLabel("Confirmation mot de passe: ", this);
 	m_lineEditConfirmMDP = new QLineEdit(this);
 	m_lineEditConfirmMDP->setEchoMode(QLineEdit::Password);
-
+	
 	m_labelDescriptionInscription = new QLabel("Description: ", this);
 	m_textEditDescriptionInscription = new QTextEdit(this);
 
@@ -130,13 +131,12 @@ void MainWindow::browseImage()
 {
 	QStringList fileNames = QFileDialog::getOpenFileNames(this, tr("Open File"), "/path/to/file/", tr("Png files (*.png)"));
 	if (fileNames.isEmpty()) {
-		QString path = "path par default!";		//path par défault si l'utilisateur cancel le "browsing"
+		path = "./PhotoProfil/profilePicture.png";		//path par défault si l'utilisateur cancel le "browsing"
 	}
 	else {
-		QString path;
 		for (int i = 0; i < fileNames.length(); i++) {
 
-			path += fileNames[i];			//path de l'image choisie
+			path += fileNames[i];			//path est le path de l'image
 		}
 	}
 }
@@ -147,6 +147,7 @@ void MainWindow::popUpQuitter()
 	reply = QMessageBox::question(this, "ATTENTION!", "Voulez-vous vraiment quitter?", QMessageBox::Yes | QMessageBox::No);
 
 	if (reply == QMessageBox::Yes) {
+		core.save();
 		close();
 	}
 }
@@ -154,18 +155,31 @@ void MainWindow::popUpQuitter()
 void MainWindow::confirmConnexion()
 {
 	QString str = m_lineEditUsername->text(), str1 = m_lineEditMDP->text();
+	
+	int usernamePasswordCheck = core.login(str.toStdString(), str1.toStdString());
 
-	if (str != NULL && str1 != NULL) {
-		username = m_lineEditUsername->text();
+	if (str != NULL && str1 != NULL && usernamePasswordCheck == 0) {
+		//username = m_lineEditUsername->text();
 		openSecondWindow();
 	}
-	else QMessageBox::warning(this, "ATTENTION!", "Veuillez entrez votre nom d'utilisateur ET votre mot de passe...", QMessageBox::Ok);
-	m_lineEditUsername->setFocus();
+	else if (str == NULL || str1 == NULL){
+		QMessageBox::warning(this, "ATTENTION!", "Veuillez entrez votre nom d'utilisateur ET votre mot de passe...", QMessageBox::Ok);
+		m_lineEditUsername->setFocus();
+	}
+
+	else if (usernamePasswordCheck == -1) {
+		QMessageBox::warning(this, "ATTENTION!", "Cette combinaison d'utilisateur et de mot de passe n'est pas valide", QMessageBox::Ok);
+		m_lineEditUsername->setFocus();
+	}
 }
 
 void MainWindow::confirmInscription()
 {
-	if (m_lineEditUsernameInscrire->text() == NULL) {
+	QString strUsername = m_lineEditUsernameInscrire->text();
+	QString strMDP = m_lineEditMDPInscrire->text();
+	QString textDescription = m_textEditDescriptionInscription->toPlainText();
+
+	if (m_lineEditUsernameInscrire->text()==NULL) {
 		QMessageBox::information(this, "ATTENTION!", "Vous devez choisir un nom d'utilisateur!", QMessageBox::Ok);
 		m_lineEditUsernameInscrire->setFocus();
 	}
@@ -186,19 +200,28 @@ void MainWindow::confirmInscription()
 		m_lineEditMDPInscrire->setFocus();
 	}
 
+	else if (core.addAccount(strUsername.toStdString(), strMDP.toStdString(), textDescription.toStdString()) == -1) {
+		QMessageBox::information(this, "ATTENTION!", "Ce nom d'utilisateur est deja utilise... Veuillez en choisir un autre", QMessageBox::Ok);
+		m_lineEditUsernameInscrire->setFocus();
+	}
+
 	else {
-		username = m_lineEditUsernameInscrire->text();
-		description = m_textEditDescriptionInscription->toPlainText();
+		if (path.isEmpty()) {
+			path = "./PhotoProfil/profilePicture.png";		//SET LE PATH PAR DEFAULT 
+		}
+		//username = m_lineEditUsernameInscrire->text();
+		core.setPath(path.toStdString());
+		core.save();
 		openSecondWindow();
 	}
 }
 
 void MainWindow::openSecondWindow()
-{
+{	
 	QWidget *w2 = new QWidget;
-	w2 = new SecondWindow(*ptr_port);
-
-	w2->setWindowTitle("Bienvenue " + username);
+	w2 = new SecondWindow();
+	
+	w2->setWindowTitle("Bienvenue " + QString::fromStdString(core.getName_U()));
 	w2->show();
 
 	QRect screenGeometry = QApplication::desktop()->screenGeometry();		//Permet de centrer la deuxieme fenetre (w2) au centre de l'écran 
@@ -206,16 +229,14 @@ void MainWindow::openSecondWindow()
 	int y = (screenGeometry.height() - w2->height()) / 2;
 	w2->move(x, y);
 
-	//Insérer boucle de lecture ici
-
 	close();
 }
 
 //DEUXIEME FENETRE----------------------------------------------------------------------------------------------------------------------------
 
-SecondWindow::SecondWindow(CommunicationFPGA &port, QWidget *parent)
+SecondWindow::SecondWindow(QWidget *parent)
 	: QMainWindow(parent)
-{
+{	
 	m_btnQuit = new QPushButton(tr("&Deconnexion"));
 	connect(m_btnQuit, SIGNAL(clicked()), this, SLOT(deconnexionPopUp()));			//Confirmation que l'utilisateur veut vraiment quitter
 
@@ -224,7 +245,7 @@ SecondWindow::SecondWindow(CommunicationFPGA &port, QWidget *parent)
 	m_bottomLayout->addWidget(m_btnQuit);
 
 	m_secondWidget = new QWidget(this);
-
+	
 	m_secondMainLayout = new QVBoxLayout(m_secondWidget);
 	createMenu2();
 	createGroupBoxImage();
@@ -234,9 +255,7 @@ SecondWindow::SecondWindow(CommunicationFPGA &port, QWidget *parent)
 	m_secondMainLayout->addWidget(m_groupBoxAppreciation);
 	m_secondMainLayout->addLayout(m_bottomLayout);
 
-	setCentralWidget(m_secondWidget);
-
-	*ptr_port = port;
+	setCentralWidget(m_secondWidget);	
 }
 
 SecondWindow::~SecondWindow()
@@ -259,12 +278,11 @@ void SecondWindow::createMenu2()
 	m_helpMenu = menuBar()->addMenu(tr("&Aide"));
 	m_aboutAppAction = m_helpMenu->addAction(tr("A propos de Tinder"));
 	m_aboutMeAction = m_helpMenu->addAction(tr("A propos de moi"));
-	m_calibrateAction = m_optionMenu->addAction("Calibrer");
 
 	connect(m_parametreCompte, SIGNAL(triggered()), this, SLOT(openThirdWindow()));			//Bouton dans la barre de menu qui ouvre la troisieme fenetre
+
 	connect(m_aboutAppAction, SIGNAL(triggered()), this, SLOT(popUpAboutApp()));			//Les deux boutons du menu d'aide qui ouvre des MessageBox
 	connect(m_aboutMeAction, SIGNAL(triggered()), this, SLOT(popUpAboutMe()));
-	connect(m_calibrateAction, SIGNAL(triggered()), this, SLOT(calibrate()));
 }
 
 void SecondWindow::createGroupBoxImage()
@@ -272,13 +290,18 @@ void SecondWindow::createGroupBoxImage()
 	m_groupBoxImage = new QGroupBox(tr("Utilisateur en attente de jugement: "));
 	m_vLayoutImage = new QVBoxLayout;
 	m_imageLabel = new QLabel;
-	m_nomAgeLabel = new QLabel("Nom de l'usager", this);
-	m_textEditDescription = new QTextEdit("Ceci est la description de l'utilisateur presentement sous evaluation!", this);
+	m_nomAgeLabel = new QLabel(QString::fromStdString(core.getName_P()), this);
+	m_textEditDescription = new QTextEdit(QString::fromStdString(core.checkDescription_P()), this);
 	m_textEditDescription->setStyleSheet(QString("background-color: lightgray"));
 	m_textEditDescription->setReadOnly(true);
 	QFont f("Arial", 14, QFont::Bold);
 	m_nomAgeLabel->setFont(f);
-	QPixmap pixMap("./PhotoProfil/profilePicture.png");
+	//QPixmap pixMap("./PhotoProfil/profilePicture.png");
+
+	/*if (path == "") {
+		core.setPath("./PhotoProfil/profilePicture.png");
+	}*/
+	QPixmap pixMap(QString::fromStdString(core.getPath_P()));
 
 	QRect screenGeometry = QApplication::desktop()->screenGeometry();			//Permet de trouver la bonne dimension pour l'image selon la hauteur de l'écran
 	int h = screenGeometry.height();
@@ -305,27 +328,106 @@ void SecondWindow::createGroupBoxAppreciation()
 	m_btnLike = new QPushButton("Like", this);
 	m_btnSuperlike = new QPushButton("Superlike", this);
 
-	m_gridLayoutAppreciation->addWidget(m_btnDislike, 4, 1, 1, 1);
+	m_gridLayoutAppreciation->addWidget(m_btnDislike,4,1,1,1);
 	m_gridLayoutAppreciation->addWidget(m_btnLike, 4, 2, 1, 1);
 	m_gridLayoutAppreciation->addWidget(m_btnSuperlike, 4, 3, 1, 1);
+
+	connect(m_btnDislike, SIGNAL(clicked()), this, SLOT(dislikeUser()));			//Bouton dans la barre de menu qui ouvre la troisieme fenetre
+	connect(m_btnLike, SIGNAL(clicked()), this, SLOT(likeUser()));
+	connect(m_btnSuperlike, SIGNAL(clicked()), this, SLOT(superlikeUser()));
 
 	m_groupBoxAppreciation->setLayout(m_gridLayoutAppreciation);
 }
 
-void SecondWindow::calibrate()
+void SecondWindow::dislikeUser()
 {
-	QWidget *calib = new QWidget;
-	calib = new calibWindow(*ptr_port);
+	if (core.dislike() == 1) {		//fin de la liste, il n'y a plus personne a apprecier
+		QMessageBox::information(this, "ATTENTION!", "Il n'y a plus personne a apprecier", QMessageBox::Ok);
+		return;
+	}
 
-	calib->setMinimumSize(400, 200);
-	calib->show();
+	m_nomAgeLabel->setText(QString::fromStdString(core.getName_P()));
+	m_textEditDescription->setText(QString::fromStdString(core.checkDescription_P()));
+	
+	//Modification de l'image affichée
+	QPixmap pixMap(QString::fromStdString(core.getPath_P()));
+
+	QRect screenGeometry = QApplication::desktop()->screenGeometry();			//Permet de trouver la bonne dimension pour l'image selon la hauteur de l'écran
+	int h = screenGeometry.height();
+	int newImageSize = (int)(h * 0.30);
+
+	QPixmap scaledPix = pixMap.scaled(QSize(newImageSize, newImageSize));		//permet de redimensionner l'image
+
+	m_imageLabel->setPixmap(scaledPix);
+}
+
+void SecondWindow::likeUser()
+{
+	int retour = core.like();
+	if (retour == 1) {			//fin de la liste, il n'y a plus personne a apprecier
+		QMessageBox::information(this, "ATTENTION!", "Il n'y a plus personne a apprecier", QMessageBox::Ok);
+		return;
+	}
+	else if (retour == 2) {		//plus de user et que tu as un match
+		QMessageBox::information(this, "WOW!", "VOUS AVEZ UN MATCH!!! Cependant, il n'y a plus d'utilisateur dans la liste... Revenez plus tard pour d'autres rencontres sensuelles. ;)", QMessageBox::Ok);
+		return;
+	}
+
+	else if (retour == 0) {
+		QMessageBox::information(this, "WOW!", "VOUS AVEZ UN MATCH!!! Écrivez rapidement à l'utilisateur en question pour organiser une rencontre sensuelle ;)", QMessageBox::Ok);
+	}
+
+	m_nomAgeLabel->setText(QString::fromStdString(core.getName_P()));
+	m_textEditDescription->setText(QString::fromStdString(core.checkDescription_P()));
+	
+	//Modification de l'image affichée
+	QPixmap pixMap(QString::fromStdString(core.getPath_P()));
+
+	QRect screenGeometry = QApplication::desktop()->screenGeometry();			//Permet de trouver la bonne dimension pour l'image selon la hauteur de l'écran
+	int h = screenGeometry.height();
+	int newImageSize = (int)(h * 0.30);
+
+	QPixmap scaledPix = pixMap.scaled(QSize(newImageSize, newImageSize));		//permet de redimensionner l'image
+
+	m_imageLabel->setPixmap(scaledPix);
+}
+
+void SecondWindow::superlikeUser()
+{
+	int retour = core.superLike();
+	if (retour == 1) {			//fin de la liste, il n'y a plus personne a apprecier
+		QMessageBox::information(this, "ATTENTION!", "Il n'y a plus personne a apprecier", QMessageBox::Ok);
+		return;
+	}
+	else if (retour == 2) {		//plus de user et que tu as un match
+		QMessageBox::information(this, "WOW!", "VOUS AVEZ UN SUPER MATCH!!! Cependant, il n'y a plus d'utilisateur dans la liste... Revenez plus tard pour d'autres rencontres sensuelles. ;)", QMessageBox::Ok);
+		return;
+	}
+
+	else if (retour == 0) {
+		QMessageBox::information(this, "WOW!", "VOUS AVEZ UN SUPER MATCH!!! Écrivez rapidement à l'utilisateur en question pour organiser une SUPER rencontre sensuelle ;)", QMessageBox::Ok);
+	}
+
+	m_nomAgeLabel->setText(QString::fromStdString(core.getName_P()));
+	m_textEditDescription->setText(QString::fromStdString(core.checkDescription_P()));
+
+	//Modification de l'image affichée
+	QPixmap pixMap(QString::fromStdString(core.getPath_P()));
+
+	QRect screenGeometry = QApplication::desktop()->screenGeometry();			//Permet de trouver la bonne dimension pour l'image selon la hauteur de l'écran
+	int h = screenGeometry.height();
+	int newImageSize = (int)(h * 0.30);
+
+	QPixmap scaledPix = pixMap.scaled(QSize(newImageSize, newImageSize));		//permet de redimensionner l'image
+
+	m_imageLabel->setPixmap(scaledPix);
 }
 
 void SecondWindow::popUpAboutApp()
 {
 	QMessageBox::information(this, "A propos de Tinder...", "Tinder est une application de reseautage social permettant batir une relation amoureuse assurement solide. "
-		"Cette application defile des profils d'utilisateurs inscrits et permet a l'utilisateur connecte d'apprecier ou non la personne "
-		"affichee selon plusieurs parametres (son nom, son age, sa photo de profil, sa description, etc.)");
+							"Cette application defile des profils d'utilisateurs inscrits et permet a l'utilisateur connecte d'apprecier ou non la personne "
+							"affichee selon plusieurs parametres (son nom, son age, sa photo de profil, sa description, etc.)");
 }
 
 void SecondWindow::popUpAboutMe()
@@ -340,10 +442,11 @@ void SecondWindow::deconnexionPopUp()
 
 	if (reply == QMessageBox::Yes) {
 		QWidget *w1 = new QWidget;			//Recréation et réaffichage de la premiere fenetre avec le constructeur de MainWindow
-		w1 = new MainWindow(*ptr_port);
+		w1 = new MainWindow();
 
 		w1->show();
 		close();			//Ferme this, étant la deuxieme fenetre
+		core.logout();
 	}
 }
 
@@ -372,13 +475,13 @@ ThirdWindow::ThirdWindow(QWidget *parent)
 
 	m_bottomLayout->addWidget(m_btnSave);
 	m_bottomLayout->addWidget(m_btnCancel);
-
+	
 	m_thirdWidget = new QWidget(this);
 
 	m_thirdMainLayout = new QVBoxLayout(m_thirdWidget);		//faut que mainLayout hérite de ma fenetre princ ??? 
 	//createMenu2();
 	createGroupBoxCompte();
-
+	
 
 	m_thirdMainLayout->addWidget(m_groupBoxCompte);
 	m_thirdMainLayout->addLayout(m_bottomLayout);
@@ -393,24 +496,26 @@ ThirdWindow::~ThirdWindow()
 
 void ThirdWindow::createGroupBoxCompte()
 {
+	//QString textMDP = QString::fromStdString(		GET LE PASSWORD
+
 	m_groupBoxCompte = new QGroupBox(tr("Veuillez entrez les modifications de compte desirees: "));
 	m_formLayoutCompte = new QFormLayout;
 
 	m_labelUsernameCpt = new QLabel("Nom d'utilisateur actuel (non modifiable): ", this);
-	m_labelMDPCpt = new QLabel("Nouveau mot de passe: ", this);
+	m_labelMDPCpt = new QLabel("Nouveau mot de passe: ",this);
 	m_labelConfirmMDPCpt = new QLabel("Confirmation du nouveau mot de passe: ", this);
 	m_labelDescriptionCpt = new QLabel("Modifie la description actuelle: ", this);
 	m_labelImageCpt = new QLabel("Nouvelle photo de profil: ", this);
-
-	m_lineEditUsernameCpt = new QLineEdit(username, this);
+	
+	m_lineEditUsernameCpt = new QLineEdit(QString::fromStdString(core.getName_U()), this);
 	m_lineEditUsernameCpt->setStyleSheet(QString("background-color: lightgray"));
 	m_lineEditUsernameCpt->setReadOnly(true);
-	m_lineEditMDPCpt = new QLineEdit(this);
-	m_lineEditConfirmMDPCpt = new QLineEdit(this);
+	m_lineEditMDPCpt = new QLineEdit(QString::fromStdString(core.getPass()), this);	
+	m_lineEditConfirmMDPCpt = new QLineEdit(QString::fromStdString(core.getPass()), this);
 	m_lineEditMDPCpt->setEchoMode(QLineEdit::Password);
 	m_lineEditConfirmMDPCpt->setEchoMode(QLineEdit::Password);
 
-	m_textLineDescription = new QTextEdit(description, this);
+	m_textLineDescription = new QTextEdit(QString::fromStdString(core.checkDescription_U()),this);
 	m_btnPhotoProfil = new QPushButton("Selectionner une image", this);
 
 	m_formLayoutCompte->addRow(m_labelUsernameCpt, m_lineEditUsernameCpt);
@@ -427,31 +532,47 @@ void ThirdWindow::createGroupBoxCompte()
 void ThirdWindow::modifPhotoProfil() {
 
 	QStringList fileNames = QFileDialog::getOpenFileNames(this, tr("Open File"), "/path/to/file/", tr("Png files (*.png)"));
-	if (fileNames.isEmpty()) {
-		//rien ne se passe, garde le même path qu'avant
-	}
-	else {
-		QString path = "";	//vide le path
-		for (int i = 0; i < fileNames.length(); i++) {
-
-			path += fileNames[i];			//path est le path de l'image
+		if (fileNames.isEmpty()) {
+			//rien ne se passe, garde le même path qu'avant
 		}
-	}
+		else {
+			path = "" ;	//vide le path
+			for (int i = 0; i < fileNames.length(); i++) {
+
+				path += fileNames[i];			//path est le path de l'image
+			}
+		}
 }
 
 void ThirdWindow::savePopUp()
 {
-	if (m_lineEditMDPCpt->text() == m_lineEditConfirmMDPCpt->text()) {
+	if (m_lineEditMDPCpt->text() == "") {
+		QMessageBox::warning(this, "ATTENTION!", "Vous ne pouvez pas avoir un mot de passe vide", QMessageBox::Ok);
+		m_lineEditMDPCpt->clear();
+		m_lineEditConfirmMDPCpt->clear();
+		m_lineEditMDPCpt->setFocus();
+	}
+
+	else if (m_lineEditMDPCpt->text() == m_lineEditConfirmMDPCpt->text()){
 
 		QMessageBox::StandardButton reply;
 		reply = QMessageBox::question(this, "ATTENTION!", "Voulez-vous vraiment sauvegarder les modifications apportees ?", QMessageBox::Yes | QMessageBox::No);
 		if (reply == QMessageBox::Yes) {
-			description = m_textLineDescription->toPlainText();
+			//description = m_textLineDescription->toPlainText();
+
+			QString textMDP = m_lineEditConfirmMDPCpt->text();		//Si l'utilisateur accepte la sauvegarder, le nouveau mot de passe est enregistré
+			QString textMDPConfirm = m_lineEditMDPCpt->text();
+			core.changePassword(textMDP.toStdString(), textMDPConfirm.toStdString());
+
+			QString textDescription = m_textLineDescription->toPlainText();		//Si l'utilisateur accepte la sauvegarder, la nouvelle description est enregistrée
+			core.changeDescription(textDescription.toStdString());
+			core.setPath(path.toStdString());		//modification du path
+			core.save();
 			close();
 		}
 	}
 	else {
-		QMessageBox::warning(this, "ATTENTION!", "Vos deux mots de passe ne sont pas identiques, veuillez verifier votre entree.", QMessageBox::Ok);
+		QMessageBox::warning(this, "ATTENTION!", "Vos deux mots de passe ne sont pas identiques, veuillez recommencer vos entrees.", QMessageBox::Ok);
 		m_lineEditMDPCpt->clear();
 		m_lineEditConfirmMDPCpt->clear();
 		m_lineEditMDPCpt->setFocus();

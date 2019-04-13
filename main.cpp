@@ -1,19 +1,14 @@
 #include "TinderGUI.h"
 #include <QApplication>
-#include <QDesktopWidget>
-#include <QStyle>
-
-#include <iostream>
 
 int main(int argc, char *argv[])
 {
    QApplication a(argc, argv);
-   QApplication::setStyle("fusion");
-
-   CommunicationFPGA port;
-
-   MainWindow w(port);
+   MainWindow w;
    w.show();
+   //SecondWindow w2;
 
+   //w.setPartner(&w2);
+   //w2.setPartner(&w);
    return a.exec();
 }
