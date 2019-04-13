@@ -1,11 +1,43 @@
-1
-yolo
-yolo
+3
+nick
+nick
+0	0	0	0	
+0	0	0	0	
+0	0	0	0	
+0	0	0	0	
+
+
+
+oli	
+
+
+Je suis une coquille vide dépourvu d'âme.
+./PhotoProfil/profilePicture.png
+oli
+oli
+0	0	0	0	
+0	0	0	0	
+0	0	0	0	
+0	0	0	0	
+nick	
+
+
+
+
+
+Je suis une coquille vide dépourvu d'âme.
+./PhotoProfil/profilePicture.png
+salut
+salut
+0	0	0	0	
+0	0	0	0	
+0	0	0	0	
+0	0	0	0	
 
 
 
 
 
 
-dsfsddss
+Je suis une coquille vide dépourvu d'âme.
 ./PhotoProfil/profilePicture.png

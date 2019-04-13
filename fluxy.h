@@ -11,11 +11,14 @@
 
 class fluxy
 {
-
 private:
 	struct info {
 		string name;
 		string password = "none";
+		string Filtre_1[4] = { "0","0","0","0" };
+		string Filtre_2[4] = { "0","0","0","0" };
+		string Filtre_3[4] = { "0","0","0","0" };
+		string Filtre_4[4] = { "0","0","0","0" };
 		string like[100];
 		string dislike[100];
 		string superLike[100];
@@ -25,7 +28,6 @@ private:
 		string description = "I am so bored I can't even take the time to enter a description of myself";
 		string path = "none";
 	};
-	info donnee;
 	string const CoorsLight = "info.txt";
 	string answer;
 	string newUser;
@@ -59,6 +61,8 @@ public:
 	string getName_P();
 	void setPath(string newPath);
 	void save(); // save all data in a txt fill
+	void setFiltre(float *filtre_1, float *filtre_2, float *filtre_3, float *filtre_4);
+	void getFiltre(float *filtre_1, float *filtre_2, float *filtre_3, float *filtre_4);
 	string getPass();
 
 protected:

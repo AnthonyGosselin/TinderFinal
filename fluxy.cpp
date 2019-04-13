@@ -41,18 +41,20 @@ int fluxy::addAccount(string newAccount, string password, string description) {
 	nbUsers++;
 	cu = nbUsers - 1;
 	currentUser = accounts[cu];
-	pickUser();
+	if (pickUser() == -1) {
+		return 1;
+	}
 	return 0;
 }
 
 int fluxy::like() {
 	int i = 0;
-	while (currentPray.like[i] != "") {
+	while (currentPray.like[i] != "\0") {
 		i++;
 	}
 	currentPray.like[i] = currentUser.name;
 	i = 0;
-	while (currentUser.iLike[i] != "") {
+	while (currentUser.iLike[i] != "\0") {
 		i++;
 	}
 	currentUser.iLike[i] = currentPray.name;
@@ -70,12 +72,12 @@ int fluxy::like() {
 int fluxy::dislike() {
 	{
 		int i = 0;
-		while (currentPray.dislike[i] != "") {
+		while (currentPray.dislike[i] != "\0") {
 			i++;
 		}
 		currentPray.dislike[i] = currentUser.name;
 		i = 0;
-		while (currentUser.iDislike[i] != "") {
+		while (currentUser.iDislike[i] != "\0") {
 			i++;
 		}
 		currentUser.iDislike[i] = currentPray.name;
@@ -87,12 +89,12 @@ int fluxy::dislike() {
 }
 int fluxy::superLike() {
 	int i = 0;
-	while (currentPray.superLike[i] != "") {
+	while (currentPray.superLike[i] != "\0") {
 		i++;
 	}
 	currentPray.superLike[i] = currentUser.name;
 	i = 0;
-	while (currentUser.iSuperLike[i] != "") {
+	while (currentUser.iSuperLike[i] != "\0") {
 		i++;
 	}
 	currentUser.iSuperLike[i] = currentPray.name;
@@ -121,7 +123,9 @@ int fluxy::login(string name, string password) {
 	}
 	currentUser = a;
 	cu = i;
-	pickUser();
+	if (pickUser() == -1) {
+		return 1;
+	}
 	return 0;
 }
 //string fluxy::sponsor() {}
@@ -141,46 +145,62 @@ void fluxy::fillList(string stuff, string *c) {
 
 int fluxy::listAccounts() {
 	ifstream fichier(CoorsLight);
-	info b;
+	info a;
 	if (fichier) {
 		string ligne;
-		string a;
-		getline(fichier, a);
-		nbUsers = stringToInt(a);
+		string n;
+		getline(fichier, n);
+		nbUsers = stringToInt(n);
 		while (getline(fichier, ligne)) {
-			b.name = ligne;
+			a.name = ligne;
 			getline(fichier, ligne);
-			b.password = ligne;
+			a.password = ligne;
 			getline(fichier, ligne);
-			fillList(ligne, b.like);
+			fillList(ligne, a.Filtre_1);
 			getline(fichier, ligne);
-			fillList(ligne, b.dislike);
+			fillList(ligne, a.Filtre_2);
 			getline(fichier, ligne);
-			fillList(ligne, b.superLike);
+			fillList(ligne, a.Filtre_3);
 			getline(fichier, ligne);
-			fillList(ligne, b.iLike);
+			fillList(ligne, a.Filtre_4);
 			getline(fichier, ligne);
-			fillList(ligne, b.iDislike);
+			fillList(ligne, a.like);
 			getline(fichier, ligne);
-			fillList(ligne, b.iSuperLike);
+			fillList(ligne, a.dislike);
 			getline(fichier, ligne);
-			b.description = ligne;
+			fillList(ligne, a.superLike);
 			getline(fichier, ligne);
-			b.path = ligne;
+			fillList(ligne, a.iLike);
+			getline(fichier, ligne);
+			fillList(ligne, a.iDislike);
+			getline(fichier, ligne);
+			fillList(ligne, a.iSuperLike);
+			getline(fichier, ligne);
+			a.description = ligne;
+			getline(fichier, ligne);
+			a.path = ligne;
 
-			accounts += b;
-			b.name = "\0";
-			b.password = "\0";
+			accounts += a;
+			a.name = "\0";
+			a.password = "\0";
 			for (int i = 0; i <= 100; i++) {
-				b.like[i] = "\0";
-				b.dislike[i] = "\0";
-				b.superLike[i] = "\0";
-				b.iLike[i] = "\0";
-				b.iDislike[i] = "\0";
-				b.iSuperLike[i] = "\0";
+				a.like[i] = "\0";
+				a.dislike[i] = "\0";
+				a.superLike[i] = "\0";
+				a.iLike[i] = "\0";
+				a.iDislike[i] = "\0";
+				a.iSuperLike[i] = "\0";
 			}
-			b.description = "\0";
-			b.path = "\0";
+			for (int j = 0; j < 4; j++) {
+				a.Filtre_1[j] = "\0";
+				a.Filtre_2[j] = "\0";
+				a.Filtre_3[j] = "\0";
+				a.Filtre_4[j] = "\0";
+			}
+			a.description = "\0";
+			a.path = "\0";
+
+
 		}
 		return 0;
 	}
@@ -257,6 +277,30 @@ void fluxy::save() {
 			fichier << a.name << endl;
 			fichier << a.password << endl;
 			int j = 0;
+			while (j < 4) {
+				fichier << a.Filtre_1[j] << "\t";
+				j++;
+			}
+			fichier << endl;
+			j = 0;
+			while (j < 4) {
+				fichier << a.Filtre_2[j] << "\t";
+				j++;
+			}
+			fichier << endl;
+			j = 0;
+			while (j < 4) {
+				fichier << a.Filtre_3[j] << "\t";
+				j++;
+			}
+			fichier << endl;
+			j = 0;
+			while (j < 4) {
+				fichier << a.Filtre_4[j] << "\t";
+				j++;
+			}
+			fichier << endl;
+			j = 0;
 			while (a.like[j] != "\0") {
 				fichier << a.like[j] << "\t";
 				j++;
@@ -407,6 +451,7 @@ void fluxy::changeDescription(string description) {
 string fluxy::getPath_U() {
 	return currentUser.path;
 }
+
 string fluxy::getPath_P() {
 	return currentPray.path;
 }
@@ -502,6 +547,26 @@ int fluxy::match() {
 void fluxy::setPath(string newPath) {
 	currentUser.path = newPath;
 	tempSave(currentUser, cu);
+}
+
+void fluxy::setFiltre(float *filtre_1, float *filtre_2, float *filtre_3, float *filtre_4) {
+	for (int i = 0; i < 4; i++) {
+		currentUser.Filtre_1[i] = to_string(filtre_1[i]);
+		currentUser.Filtre_2[i] = to_string(filtre_2[i]);
+		currentUser.Filtre_3[i] = to_string(filtre_3[i]);
+		currentUser.Filtre_4[i] = to_string(filtre_4[i]);
+	}
+	tempSave(currentUser, cu);
+}
+
+void fluxy::getFiltre(float *filtre_1, float *filtre_2, float *filtre_3, float *filtre_4) {
+	string::size_type sz;
+	for (int i = 0; i < 4; i++) {
+		filtre_1[i] = stof(currentUser.Filtre_1[i], &sz);
+		filtre_2[i] = stof(currentUser.Filtre_2[i], &sz);
+		filtre_3[i] = stof(currentUser.Filtre_3[i], &sz);
+		filtre_4[i] = stof(currentUser.Filtre_4[i], &sz);
+	}
 }
 
 string fluxy::getPass() {

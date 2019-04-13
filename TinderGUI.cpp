@@ -3,28 +3,36 @@
 #include <qrect.h>
 #include <qdesktopwidget.h>
 #include <qapplication.h>
+#include <qdebug.h>
 
 //QString description = "Ceci est la description par default. Pour la modifier, clickez sur option, parametre compte.";
 fluxy core;
 QString path;
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
+	: QMainWindow(parent)
 {
 	path = "";
 	createMenu();
 	createGroupBoxConnexion();
 	createFormGroupInscrire();
-	
+
 	m_mainWidget = new QWidget(this);
 
 	m_btnQuitter = new QPushButton(tr("&Quitter"));
+	m_btnQuitter->setStyleSheet(QString("background-color: lightgreen"));
 
 	connect(m_btnQuitter, SIGNAL(clicked()), this, SLOT(popUpQuitter()));		//Confirmation que l'utilisateur veut réellement quitter
 
 	m_bottomLayout = new QHBoxLayout;
 	m_bottomLayout->addStretch();				//"Stretch tout à droite"
 	m_bottomLayout->addWidget(m_btnQuitter);
+
+	QPixmap bkgnd("./PhotoProfil/tinder.png");
+	bkgnd = bkgnd.scaled(this->size(), Qt::IgnoreAspectRatio);
+	QPalette palette;
+	palette.setBrush(QPalette::Background, bkgnd);
+	this->setPalette(palette);
 
 	m_mainLayout = new QVBoxLayout(m_mainWidget);
 	m_mainLayout->addWidget(m_GroupBoxConnexion);
@@ -35,6 +43,7 @@ MainWindow::MainWindow(QWidget *parent)
 	setCentralWidget(m_mainWidget);
 	//setFixedSize(900,800);				//MIEUX DE PAS METTRE DE FIXED SIZE CÔTÉ ERGONOMIE OU PAS GRAVE ????????????????
 	setWindowTitle("Tinder.net - Connexion");
+	setWindowIcon(QIcon("./PhotoProfil/tinderLogo.png"));
 }
 
 MainWindow::~MainWindow()
@@ -64,13 +73,18 @@ void MainWindow::createGroupBoxConnexion()
 {
 	m_GroupBoxConnexion = new QGroupBox(tr("Deja un compte? Connecte toi!"));
 	m_formLayoutConnexion = new QFormLayout;
-	
+
 	m_labelUsername = new QLabel("Username: ", this);
 	m_lineEditUsername = new QLineEdit(this);
+	m_lineEditUsername->setStyleSheet(QString("background-color: pink"));
+
 	m_labelMDP = new QLabel("Mot de passe: ", this);
 	m_lineEditMDP = new QLineEdit(this);
+	m_lineEditMDP->setStyleSheet(QString("background-color: pink"));
+
 	m_lineEditMDP->setEchoMode(QLineEdit::Password);
 	m_btnConnexion = new QPushButton("Connexion", this);
+	m_btnConnexion->setStyleSheet(QString("background-color: lightgreen"));
 
 	m_formLayoutConnexion->addRow(m_labelUsername, m_lineEditUsername);
 	m_formLayoutConnexion->addRow(m_labelMDP, m_lineEditMDP);
@@ -88,21 +102,30 @@ void MainWindow::createFormGroupInscrire()
 
 	m_labelUsername = new QLabel("Username :", this);
 	m_lineEditUsernameInscrire = new QLineEdit(this);
+	m_lineEditUsernameInscrire->setStyleSheet(QString("background-color: pink"));
+
 	m_labelMDP = new QLabel("Mot de passe: ", this);
 	m_lineEditMDPInscrire = new QLineEdit(this);
 	m_lineEditMDPInscrire->setEchoMode(QLineEdit::Password);
+	m_lineEditMDPInscrire->setStyleSheet(QString("background-color: pink"));
 
 	m_labelConfirmMDP = new QLabel("Confirmation mot de passe: ", this);
 	m_lineEditConfirmMDP = new QLineEdit(this);
 	m_lineEditConfirmMDP->setEchoMode(QLineEdit::Password);
-	
+	m_lineEditConfirmMDP->setStyleSheet(QString("background-color: pink"));
+
+
 	m_labelDescriptionInscription = new QLabel("Description: ", this);
 	m_textEditDescriptionInscription = new QTextEdit(this);
+	m_textEditDescriptionInscription->setStyleSheet(QString("background-color: pink"));
+
 
 	m_labelImage = new QLabel("Choisir une image de profil: ", this);
 	m_btnChoisirImage = new QPushButton("Importer une photo", this);
+	m_btnChoisirImage->setStyleSheet(QString("background-color: lightgreen"));
 
 	m_btnInscrire = new QPushButton("S'inscrire", this);
+	m_btnInscrire->setStyleSheet(QString("background-color: lightgreen"));
 
 	m_formLayoutInscription->addRow(m_labelUsername, m_lineEditUsernameInscrire);
 	m_formLayoutInscription->addRow(m_labelMDP, m_lineEditMDPInscrire);
@@ -132,6 +155,7 @@ void MainWindow::browseImage()
 	QStringList fileNames = QFileDialog::getOpenFileNames(this, tr("Open File"), "/path/to/file/", tr("Png files (*.png)"));
 	if (fileNames.isEmpty()) {
 		path = "./PhotoProfil/profilePicture.png";		//path par défault si l'utilisateur cancel le "browsing"
+		qDebug() << path << endl;
 	}
 	else {
 		for (int i = 0; i < fileNames.length(); i++) {
@@ -155,20 +179,24 @@ void MainWindow::popUpQuitter()
 void MainWindow::confirmConnexion()
 {
 	QString str = m_lineEditUsername->text(), str1 = m_lineEditMDP->text();
-	
+
 	int usernamePasswordCheck = core.login(str.toStdString(), str1.toStdString());
 
 	if (str != NULL && str1 != NULL && usernamePasswordCheck == 0) {
 		//username = m_lineEditUsername->text();
 		openSecondWindow();
 	}
-	else if (str == NULL || str1 == NULL){
+	else if (str == NULL || str1 == NULL) {
 		QMessageBox::warning(this, "ATTENTION!", "Veuillez entrez votre nom d'utilisateur ET votre mot de passe...", QMessageBox::Ok);
 		m_lineEditUsername->setFocus();
 	}
 
 	else if (usernamePasswordCheck == -1) {
 		QMessageBox::warning(this, "ATTENTION!", "Cette combinaison d'utilisateur et de mot de passe n'est pas valide", QMessageBox::Ok);
+		m_lineEditUsername->setFocus();
+	}
+	else if (usernamePasswordCheck == 1) {
+		QMessageBox::warning(this, "ATTENTION!", "Il n'y a pas d'autre utilisateur dans la liste, revenez plus tard", QMessageBox::Ok);
 		m_lineEditUsername->setFocus();
 	}
 }
@@ -178,8 +206,9 @@ void MainWindow::confirmInscription()
 	QString strUsername = m_lineEditUsernameInscrire->text();
 	QString strMDP = m_lineEditMDPInscrire->text();
 	QString textDescription = m_textEditDescriptionInscription->toPlainText();
+	int usernamePasswordCheck = core.addAccount(strUsername.toStdString(), strMDP.toStdString(), textDescription.toStdString());
 
-	if (m_lineEditUsernameInscrire->text()==NULL) {
+	if (m_lineEditUsernameInscrire->text() == NULL) {
 		QMessageBox::information(this, "ATTENTION!", "Vous devez choisir un nom d'utilisateur!", QMessageBox::Ok);
 		m_lineEditUsernameInscrire->setFocus();
 	}
@@ -200,9 +229,13 @@ void MainWindow::confirmInscription()
 		m_lineEditMDPInscrire->setFocus();
 	}
 
-	else if (core.addAccount(strUsername.toStdString(), strMDP.toStdString(), textDescription.toStdString()) == -1) {
+	else if (usernamePasswordCheck == -1) {
 		QMessageBox::information(this, "ATTENTION!", "Ce nom d'utilisateur est deja utilise... Veuillez en choisir un autre", QMessageBox::Ok);
 		m_lineEditUsernameInscrire->setFocus();
+	}
+	else if (usernamePasswordCheck == 1) {
+		QMessageBox::warning(this, "ATTENTION!", "Il n'y a pas d'autre utilisateur dans la liste, revenez plus tard", QMessageBox::Ok);
+		m_lineEditUsername->setFocus();
 	}
 
 	else {
@@ -217,10 +250,10 @@ void MainWindow::confirmInscription()
 }
 
 void MainWindow::openSecondWindow()
-{	
+{
 	QWidget *w2 = new QWidget;
 	w2 = new SecondWindow();
-	
+
 	w2->setWindowTitle("Bienvenue " + QString::fromStdString(core.getName_U()));
 	w2->show();
 
@@ -236,8 +269,12 @@ void MainWindow::openSecondWindow()
 
 SecondWindow::SecondWindow(QWidget *parent)
 	: QMainWindow(parent)
-{	
+{
+	qDebug() << path << endl;
+
 	m_btnQuit = new QPushButton(tr("&Deconnexion"));
+	m_btnQuit->setStyleSheet(QString("background-color: lightgreen"));
+
 	connect(m_btnQuit, SIGNAL(clicked()), this, SLOT(deconnexionPopUp()));			//Confirmation que l'utilisateur veut vraiment quitter
 
 	m_bottomLayout = new QHBoxLayout;
@@ -245,17 +282,23 @@ SecondWindow::SecondWindow(QWidget *parent)
 	m_bottomLayout->addWidget(m_btnQuit);
 
 	m_secondWidget = new QWidget(this);
-	
+
 	m_secondMainLayout = new QVBoxLayout(m_secondWidget);
 	createMenu2();
 	createGroupBoxImage();
 	createGroupBoxAppreciation();
 
+	QPixmap bkgnd("./PhotoProfil/tinder.png");
+	bkgnd = bkgnd.scaled(this->size(), Qt::IgnoreAspectRatio);
+	QPalette palette;
+	palette.setBrush(QPalette::Background, bkgnd);
+	this->setPalette(palette);
+
 	m_secondMainLayout->addWidget(m_groupBoxImage);
 	m_secondMainLayout->addWidget(m_groupBoxAppreciation);
 	m_secondMainLayout->addLayout(m_bottomLayout);
 
-	setCentralWidget(m_secondWidget);	
+	setCentralWidget(m_secondWidget);
 }
 
 SecondWindow::~SecondWindow()
@@ -325,10 +368,16 @@ void SecondWindow::createGroupBoxAppreciation()
 	m_groupBoxAppreciation = new QGroupBox(tr("Votre appreciation: "));
 	m_gridLayoutAppreciation = new QGridLayout;
 	m_btnDislike = new QPushButton("Dislike", this);
-	m_btnLike = new QPushButton("Like", this);
-	m_btnSuperlike = new QPushButton("Superlike", this);
+	m_btnDislike->setStyleSheet(QString("background-color: lightgreen"));
 
-	m_gridLayoutAppreciation->addWidget(m_btnDislike,4,1,1,1);
+	m_btnLike = new QPushButton("Like", this);
+	m_btnLike->setStyleSheet(QString("background-color: lightgreen"));
+
+	m_btnSuperlike = new QPushButton("Superlike", this);
+	m_btnSuperlike->setStyleSheet(QString("background-color: lightgreen"));
+
+
+	m_gridLayoutAppreciation->addWidget(m_btnDislike, 4, 1, 1, 1);
 	m_gridLayoutAppreciation->addWidget(m_btnLike, 4, 2, 1, 1);
 	m_gridLayoutAppreciation->addWidget(m_btnSuperlike, 4, 3, 1, 1);
 
@@ -343,12 +392,13 @@ void SecondWindow::dislikeUser()
 {
 	if (core.dislike() == 1) {		//fin de la liste, il n'y a plus personne a apprecier
 		QMessageBox::information(this, "ATTENTION!", "Il n'y a plus personne a apprecier", QMessageBox::Ok);
+		noMoreJudgment();
 		return;
 	}
 
 	m_nomAgeLabel->setText(QString::fromStdString(core.getName_P()));
 	m_textEditDescription->setText(QString::fromStdString(core.checkDescription_P()));
-	
+
 	//Modification de l'image affichée
 	QPixmap pixMap(QString::fromStdString(core.getPath_P()));
 
@@ -366,10 +416,12 @@ void SecondWindow::likeUser()
 	int retour = core.like();
 	if (retour == 1) {			//fin de la liste, il n'y a plus personne a apprecier
 		QMessageBox::information(this, "ATTENTION!", "Il n'y a plus personne a apprecier", QMessageBox::Ok);
+		noMoreJudgment();
 		return;
 	}
 	else if (retour == 2) {		//plus de user et que tu as un match
 		QMessageBox::information(this, "WOW!", "VOUS AVEZ UN MATCH!!! Cependant, il n'y a plus d'utilisateur dans la liste... Revenez plus tard pour d'autres rencontres sensuelles. ;)", QMessageBox::Ok);
+		noMoreJudgment();
 		return;
 	}
 
@@ -379,7 +431,7 @@ void SecondWindow::likeUser()
 
 	m_nomAgeLabel->setText(QString::fromStdString(core.getName_P()));
 	m_textEditDescription->setText(QString::fromStdString(core.checkDescription_P()));
-	
+
 	//Modification de l'image affichée
 	QPixmap pixMap(QString::fromStdString(core.getPath_P()));
 
@@ -397,10 +449,12 @@ void SecondWindow::superlikeUser()
 	int retour = core.superLike();
 	if (retour == 1) {			//fin de la liste, il n'y a plus personne a apprecier
 		QMessageBox::information(this, "ATTENTION!", "Il n'y a plus personne a apprecier", QMessageBox::Ok);
+		noMoreJudgment();
 		return;
 	}
 	else if (retour == 2) {		//plus de user et que tu as un match
 		QMessageBox::information(this, "WOW!", "VOUS AVEZ UN SUPER MATCH!!! Cependant, il n'y a plus d'utilisateur dans la liste... Revenez plus tard pour d'autres rencontres sensuelles. ;)", QMessageBox::Ok);
+		noMoreJudgment();
 		return;
 	}
 
@@ -426,8 +480,8 @@ void SecondWindow::superlikeUser()
 void SecondWindow::popUpAboutApp()
 {
 	QMessageBox::information(this, "A propos de Tinder...", "Tinder est une application de reseautage social permettant batir une relation amoureuse assurement solide. "
-							"Cette application defile des profils d'utilisateurs inscrits et permet a l'utilisateur connecte d'apprecier ou non la personne "
-							"affichee selon plusieurs parametres (son nom, son age, sa photo de profil, sa description, etc.)");
+		"Cette application defile des profils d'utilisateurs inscrits et permet a l'utilisateur connecte d'apprecier ou non la personne "
+		"affichee selon plusieurs parametres (son nom, son age, sa photo de profil, sa description, etc.)");
 }
 
 void SecondWindow::popUpAboutMe()
@@ -458,6 +512,26 @@ void SecondWindow::openThirdWindow()
 	w3->show();
 }
 
+void SecondWindow::noMoreJudgment() {
+		
+	m_btnDislike->setEnabled(false);
+	m_btnLike->setEnabled(false);
+	m_btnSuperlike->setEnabled(false);
+
+	m_nomAgeLabel->setText("La file est vide... \nrevenez plus tard :(");
+	m_textEditDescription->setText("");
+	//Modification de l'image affichée
+	QPixmap pixMap("./PhotoProfil/imageTriste.PNG");
+
+	QRect screenGeometry = QApplication::desktop()->screenGeometry();			//Permet de trouver la bonne dimension pour l'image selon la hauteur de l'écran
+	int h = screenGeometry.height();
+	int newImageSize = (int)(h * 0.30);
+
+	QPixmap scaledPix = pixMap.scaled(QSize(newImageSize, newImageSize));		//permet de redimensionner l'image
+
+	m_imageLabel->setPixmap(scaledPix);
+}
+
 //TROISIEME FENETRE (MODIF_PARAMETRE COMPTE)
 ThirdWindow::ThirdWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -466,6 +540,8 @@ ThirdWindow::ThirdWindow(QWidget *parent)
 
 	m_btnSave = new QPushButton(tr("&Sauvegarder"));
 	m_btnCancel = new QPushButton(tr("&Annuler"));
+	m_btnSave->setStyleSheet(QString("background-color: lightgreen"));
+	m_btnCancel->setStyleSheet(QString("background-color: lightgreen"));
 
 	connect(m_btnSave, SIGNAL(clicked()), this, SLOT(savePopUp()));			//Confirmation de la sauvegarde lorsque l'utilisateur appuie sur le bouton save de la fenetre 3 de modifications des parametres
 	connect(m_btnCancel, SIGNAL(clicked()), this, SLOT(cancelPopUp()));		//Confirmation de l'annulation lorsque l'utilisateur appuie sur le bouton cancel de la fenetre 3 de modifications des parametres
@@ -475,13 +551,18 @@ ThirdWindow::ThirdWindow(QWidget *parent)
 
 	m_bottomLayout->addWidget(m_btnSave);
 	m_bottomLayout->addWidget(m_btnCancel);
-	
+
 	m_thirdWidget = new QWidget(this);
 
 	m_thirdMainLayout = new QVBoxLayout(m_thirdWidget);		//faut que mainLayout hérite de ma fenetre princ ??? 
 	//createMenu2();
 	createGroupBoxCompte();
-	
+
+	QPixmap bkgnd("./PhotoProfil/tinder.png");
+	bkgnd = bkgnd.scaled(this->size(), Qt::IgnoreAspectRatio);
+	QPalette palette;
+	palette.setBrush(QPalette::Background, bkgnd);
+	this->setPalette(palette);
 
 	m_thirdMainLayout->addWidget(m_groupBoxCompte);
 	m_thirdMainLayout->addLayout(m_bottomLayout);
@@ -502,21 +583,26 @@ void ThirdWindow::createGroupBoxCompte()
 	m_formLayoutCompte = new QFormLayout;
 
 	m_labelUsernameCpt = new QLabel("Nom d'utilisateur actuel (non modifiable): ", this);
-	m_labelMDPCpt = new QLabel("Nouveau mot de passe: ",this);
+	m_labelMDPCpt = new QLabel("Nouveau mot de passe: ", this);
 	m_labelConfirmMDPCpt = new QLabel("Confirmation du nouveau mot de passe: ", this);
 	m_labelDescriptionCpt = new QLabel("Modifie la description actuelle: ", this);
 	m_labelImageCpt = new QLabel("Nouvelle photo de profil: ", this);
-	
+
 	m_lineEditUsernameCpt = new QLineEdit(QString::fromStdString(core.getName_U()), this);
 	m_lineEditUsernameCpt->setStyleSheet(QString("background-color: lightgray"));
 	m_lineEditUsernameCpt->setReadOnly(true);
 	m_lineEditMDPCpt = new QLineEdit(QString::fromStdString(core.getPass()), this);	
+	m_lineEditMDPCpt->setStyleSheet(QString("background-color: pink"));
 	m_lineEditConfirmMDPCpt = new QLineEdit(QString::fromStdString(core.getPass()), this);
+	m_lineEditConfirmMDPCpt->setStyleSheet(QString("background-color: pink"));
 	m_lineEditMDPCpt->setEchoMode(QLineEdit::Password);
 	m_lineEditConfirmMDPCpt->setEchoMode(QLineEdit::Password);
 
-	m_textLineDescription = new QTextEdit(QString::fromStdString(core.checkDescription_U()),this);
+	m_textLineDescription = new QTextEdit(QString::fromStdString(core.checkDescription_U()), this);
+	m_textLineDescription->setStyleSheet(QString("background-color: pink"));
+
 	m_btnPhotoProfil = new QPushButton("Selectionner une image", this);
+	m_btnPhotoProfil->setStyleSheet(QString("background-color: lightgreen"));
 
 	m_formLayoutCompte->addRow(m_labelUsernameCpt, m_lineEditUsernameCpt);
 	m_formLayoutCompte->addRow(m_labelMDPCpt, m_lineEditMDPCpt);
@@ -532,16 +618,16 @@ void ThirdWindow::createGroupBoxCompte()
 void ThirdWindow::modifPhotoProfil() {
 
 	QStringList fileNames = QFileDialog::getOpenFileNames(this, tr("Open File"), "/path/to/file/", tr("Png files (*.png)"));
-		if (fileNames.isEmpty()) {
-			//rien ne se passe, garde le même path qu'avant
-		}
-		else {
-			path = "" ;	//vide le path
-			for (int i = 0; i < fileNames.length(); i++) {
+	if (fileNames.isEmpty()) {
+		//rien ne se passe, garde le même path qu'avant
+	}
+	else {
+		path = "";	//vide le path
+		for (int i = 0; i < fileNames.length(); i++) {
 
-				path += fileNames[i];			//path est le path de l'image
-			}
+			path += fileNames[i];			//path est le path de l'image
 		}
+	}
 }
 
 void ThirdWindow::savePopUp()
@@ -553,7 +639,7 @@ void ThirdWindow::savePopUp()
 		m_lineEditMDPCpt->setFocus();
 	}
 
-	else if (m_lineEditMDPCpt->text() == m_lineEditConfirmMDPCpt->text()){
+	else if (m_lineEditMDPCpt->text() == m_lineEditConfirmMDPCpt->text()) {
 
 		QMessageBox::StandardButton reply;
 		reply = QMessageBox::question(this, "ATTENTION!", "Voulez-vous vraiment sauvegarder les modifications apportees ?", QMessageBox::Yes | QMessageBox::No);

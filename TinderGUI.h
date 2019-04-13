@@ -137,6 +137,8 @@ private:
 
 	QHBoxLayout *m_bottomLayout;
 	QPushButton *m_btnQuit;
+
+	void noMoreJudgment();
 };
 
 class ThirdWindow : public QMainWindow
