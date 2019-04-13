@@ -38,9 +38,8 @@ MainWindow::MainWindow(CommunicationFPGA &port, QWidget *parent)
 	setCentralWidget(m_mainWidget);
 	//setFixedSize(900,800);				//MIEUX DE PAS METTRE DE FIXED SIZE CÔTÉ ERGONOMIE OU PAS GRAVE ????????????????
 	setWindowTitle("Tinder.net - Connexion");
-	cout << "Setting port to pointer\n";
 	ptr_port = &port;
-	cout << "set\n";
+
 }
 
 MainWindow::~MainWindow()
@@ -228,7 +227,7 @@ void MainWindow::openSecondWindow()
 	w2 = new SecondWindow(*ptr_port);
 	
 	w2->setWindowTitle("Bienvenue " + QString::fromStdString(core.getName_U()));
-	w2->show();
+	//w2->show();
 
 	QRect screenGeometry = QApplication::desktop()->screenGeometry();		//Permet de centrer la deuxieme fenetre (w2) au centre de l'écran 
 	int x = (screenGeometry.width() - w2->width()) / 2;
@@ -264,6 +263,32 @@ SecondWindow::SecondWindow(CommunicationFPGA &port, QWidget *parent)
 	setCentralWidget(m_secondWidget);	
 
 	ptr_port = &port;
+
+	this->show();
+
+	///////////////////////////////////
+
+	//Manuellement 3 phonemes (jé)
+	double refA[4] = { 0.43, 0.42, 1.0 };
+	double refE[4] = { 0.04, 0.97, 1.0 };
+	double refI[4] = { 0.0,  1.0,  0.125 };
+	double refO[4] = { 0.7,  1,   0.3 };/**/
+
+	PhonemeRef newRefA(refA);
+	PhonemeRef newRefE(refE);
+	PhonemeRef newRefI(refI);
+	PhonemeRef newRefO(refO);
+
+	PhonemeRef phonemeTab[4] = { newRefA, newRefE, newRefI, newRefO };
+	CustomSoundSignature signature(phonemeTab);
+
+	// On brise s'il y avait une boucle avant
+	if (isReading) {
+		breakReading = true;
+		while (breakReading)
+			activeWait(10);
+	}
+	loopReadPhoneme(port, signature);
 }
 
 SecondWindow::~SecondWindow()
@@ -271,17 +296,50 @@ SecondWindow::~SecondWindow()
 	//Destructeur de la deuxiemeWindow (w2)
 }
 
-//void SecondWindow::setPartner(QWidget * partner)
-//{
-//	m_premiereFenetre = partner;
-//}
-
 void SecondWindow::calibrate() {
+	breakReading = true;
+
 	QWidget *calib = new QWidget;
 	calib = new calibWindow(*ptr_port);
 
 	calib->setMinimumSize(400, 200);
 	calib->show();
+}
+
+//Boucle de lecture principale du programme
+void SecondWindow::loopReadPhoneme(CommunicationFPGA &port, CustomSoundSignature &newSignature) {
+	isReading = true;
+
+	while (!breakReading) {
+
+		int matchPhoneme = identifyPhoneme(newSignature, readPhonemeFromPort(port));
+
+		if (matchPhoneme < 0)
+			cout << "No match\n";
+		else {
+			cout << "Matched: " << matchPhoneme << endl;
+			//Appeler la fonction appropriée
+			
+			switch (matchPhoneme) {
+			case 0:
+				cout << "like user\n";
+				likeUser();
+				break;
+			case 1:
+				cout << "Dislike user\n";
+				dislikeUser();
+				break;
+			case 2:
+				cout << "Open the third window\n";
+				openThirdWindow();
+				break;
+			}
+
+			//Pourrais tenter d'identifier le phoneme encore quelques fois ici pour valider (va falloir réduire le temps de lecture de phonème)
+		}
+		activeWait(100);
+	}
+	breakReading = false;
 }
 
 void SecondWindow::createMenu2()

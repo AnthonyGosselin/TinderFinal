@@ -160,13 +160,13 @@ void calibWindow::mainButtonClicked()
 			//Decompte...
 			activeWait(500);
 			writeToOutput("   Dites: " + PHONEMES[currPhoneme] + " dans...\n");
-			activeWait(250);
+			activeWait(2500);
 			writeToOutput("   3\n");
-			activeWait(100);
+			activeWait(1000);
 			writeToOutput("   2\n");
-			activeWait(100);
+			activeWait(1000);
 			writeToOutput("   1\n");
-			activeWait(100);
+			activeWait(1000);
 			writeToOutput("   GO!\n");
 			//...
 
@@ -181,7 +181,7 @@ void calibWindow::mainButtonClicked()
 			for (int i = 0; i < NUM_READS; i++) {
 				auto initialTime = chrono::high_resolution_clock::now(); //Commence le timer
 
-				recordingPhoneme->addInput(getInputFromPort(*ptr_port, true)); //Prend une lecture
+				lastRecordedPhoneme->addInput(getInputFromPort(*ptr_port, true)); //Prend une lecture
 				//lastRecordedPhoneme->addInput(generateInputTest(currPhoneme)); //Valeurs générées aléatoirement pour tester
 				
 				auto endTime = chrono::high_resolution_clock::now(); //Arrête le timer

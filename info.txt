@@ -1,8 +1,8 @@
-5
+7
 yolo
 yolo
-bb	
-
+bb	dd	gg	
+aa	
 
 
 
@@ -11,27 +11,27 @@ dsfsddss
 ./PhotoProfil/profilePicture.png
 aa
 aa
-
-
+gg	
+dd	
 bb	bb	
+babe	qq	dd	
+yolo	bb	gg	
+gg	
+aaaaaaasdssaaa
 
-
-
-aaaaaaa
-C:/Users/Precision/Desktop/TinderFinal/PhotoProfil/Boss.PNG
 bb
 bb
-
-
-
-yolo	
-
-aa	aa	babe	
+gg	
+aa	
+dd	
+yolo	qq	dd	gg	gg	gg	gg	
+gg	
+aa	aa	babe	gg	gg	
 bb
 
 babe
 babe
-
+dd	aa	gg	
 
 bb	
 
@@ -41,11 +41,31 @@ babe is in town
 C:/Users/Precision/Pictures/EBap51cO.png
 qq
 qq
-
-
+aa	gg	bb	
+dd	
 
 
 
 
 qqqqqq
 C:/Users/Precision/Pictures/IPhone4_Images/IMG_0191.PNG
+dd
+dd
+aa	gg	bb	
+
+
+yolo	babe	dd	
+aa	qq	
+bb	
+ddddddd
+C:/Users/Precision/Desktop/TinderFinal/PhotoProfil/claudette.PNG
+gg
+gg
+bb	bb	bb	bb	
+bb	aa	
+bb	bb	aa	
+yolo	aa	bb	babe	qq	dd	
+
+
+ggggg
+C:/Users/Precision/Desktop/TinderFinal/PhotoProfil/felix.PNG

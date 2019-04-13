@@ -11,10 +11,10 @@
 
 #include "traitementPhonemes.h"
 
-const int NUM_REP = 2;
+const int NUM_REP = 1;
 const double CALIB_READ_TIME = 2000; //ms
 
-const bool TESTING = true;
+const bool TESTING = false;
 
 class calibWindow: public QWidget
 {

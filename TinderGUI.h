@@ -115,6 +115,11 @@ private:
 	void createGroupBoxAppreciation();
 	void calibrate();
 
+	void loopReadPhoneme(CommunicationFPGA &port, CustomSoundSignature &newSignature);
+
+	bool isReading = false;
+	bool breakReading = false;
+
 	QWidget *m_secondWidget;
 
 	QVBoxLayout *m_secondMainLayout;

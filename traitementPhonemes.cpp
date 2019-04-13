@@ -9,6 +9,7 @@ using namespace std;
 
 //____________INPUT____________
 
+//Pour random
 Input::Input(double newFilterVals[NUM_FILTERS]) {
 	for (int i = 0; i < NUM_FILTERS; i++) {
 		double newVal = newFilterVals[i] / MAX_VALEUR; // Conversion se fait ici!
@@ -17,11 +18,23 @@ Input::Input(double newFilterVals[NUM_FILTERS]) {
 	}
 }
 
-//Au cas ou l'entree sont des entiers... (un des constructeurs pourrait etre enlevé à l'avenir
+//Pour normal
 Input::Input(int newFilterVals[NUM_FILTERS]) {
+
+	int biggestVal = -1;
 	for (int i = 0; i < NUM_FILTERS; i++) {
-		double newVal = (double)newFilterVals[i] / MAX_VALEUR; // Conversion se fait ici!
-		cout << "New val for filter #" << i << ": " << newVal << endl;
+		if (newFilterVals[i] > biggestVal)
+			biggestVal = newFilterVals[i];
+	}
+	
+	double mult = (biggestVal == 0)? 0 : (double)(MAX_VALEUR / biggestVal);
+	//cout << "New val: \t( ";
+	//cout << "biggest: " << biggestVal << " mult: " << mult <<  " = " << (double)(biggestVal * mult) << endl;
+	for (int i = 0; i < NUM_FILTERS; i++) {
+		double multVal = (double)(newFilterVals[i] * mult);
+		double newVal = (double)(multVal/ MAX_VALEUR); // Conversion se fait ici!
+
+		cout  << newVal << (i == NUM_FILTERS-1? " )\n": ",     ");
 		filterVals[i] = newVal;
 	}
 }
@@ -44,7 +57,7 @@ void PhonemeRef::addInput(Input newInput) {
 
 //Ajouter par un autre PhonemeRef existant (déjà une composition d'inputs)
 void PhonemeRef::addInput(PhonemeRef newPhonemeRef) {
-	cout << "Adding PhonemeRef to PhonemeRef--------------------------------------------\n";
+	//cout << "Adding PhonemeRef to PhonemeRef--------------------------------------------\n";
 	compileInput(newPhonemeRef.referenceTab);
 }
 
@@ -56,17 +69,18 @@ void PhonemeRef::compileInput(double newRefTab[NUM_FILTERS]) {
 	int currNum = ++numInputs;
 
 	if (currNum > 1) {
+		//cout << "Nouv moyenne: ( ";
 		for (int i = 0; i < NUM_FILTERS; i++) {
 			double nouvMoy = (referenceTab[i] * (currNum - 1) / currNum) + (newRefTab[i] / currNum); //Calcul de la moyenne à fur et a mesure
-			cout << "Nouvelle moyenne: " << nouvMoy << " (filtre: " << i << ") \t";
-			cout << "sommeAvant: " << referenceTab[i] << " * " << ((currNum - 1) / currNum) << " + nouv somme: " << (newRefTab[i] / currNum) << endl;
+			//cout << i << ": " << nouvMoy << " /// " << referenceTab[i] << (i == NUM_FILTERS-1? " )\n": ",     ");
 			referenceTab[i] = nouvMoy;
 		}
 	}
 	else {
+		//cout << "Moyenne initiale: ( ";
 		for (int i = 0; i < NUM_FILTERS; i++) {
 			double nouvVal = newRefTab[i];
-			cout << "Moyenne initiale: " << nouvVal << " (filtre: " << i << ")\n";
+			//cout << i << ": " << nouvVal << (i == NUM_FILTERS-1? " )\n": ",     ");
 			referenceTab[i] = nouvVal;
 		}
 
@@ -103,9 +117,10 @@ double randRange(int low, int high) {
 //Fonction de test
 Input generateInputTest(int n) {
 	double randomTab[NUM_FILTERS];
+	cout << "Random val: ( ";
 	for (int i = 0; i < NUM_FILTERS; i++) {
 		randomTab[i] = (randRange(0, (255) * (n + 1) / 4));
-		cout << "Random val: " << randomTab[i] << "  (n: " << n << ")\n";
+		cout << i << ": " << randomTab[i] << (i == NUM_FILTERS-1? " )\n" : ",     ");
 	}
 	Input newInput(randomTab);
 
@@ -114,22 +129,22 @@ Input generateInputTest(int n) {
 
 //Prend une mesure unitaire
 Input getInputFromPort(CommunicationFPGA &port, bool test) {
-	int filterInputTab[4];
+	int filterInputTab[NUM_FILTERS];
 	
-	bool success0 = port.lireRegistre(LECT_CAN0, filterInputTab[0]);
-	bool success1 = port.lireRegistre(LECT_CAN1, filterInputTab[1]);
-	bool success2 = port.lireRegistre(LECT_CAN2, filterInputTab[2]);
-	bool success3 = port.lireRegistre(LECT_CAN3, filterInputTab[3]);
+	bool success0 = port.lireRegistre(LECT_CAN1, filterInputTab[0]);
+	bool success1 = port.lireRegistre(LECT_CAN2, filterInputTab[1]);
+	bool success2 = port.lireRegistre(LECT_CAN3, filterInputTab[2]);
+	//bool success3 = port.lireRegistre(LECT_CAN3, filterInputTab[3]);
 
 	//La conversion devrait se faire dans le constructeur de la class Input
 	Input newInput(filterInputTab);
 
 	if (test) {
 		for (int i = 0; i < NUM_FILTERS; i++) {
-			cout << filterInputTab[i] << "\t";
+		//	cout << (float)(filterInputTab[i]/255.0) << "\t";
 		}
 
-		bool successes[NUM_FILTERS] = {success0, success1, success2, success3};
+		bool successes[NUM_FILTERS] = {success0, success1, success2};
 		bool gotFail = false;
 		for (int i = 0; i < NUM_FILTERS; i++) {
 			if (!successes[i]) {
@@ -138,8 +153,8 @@ Input getInputFromPort(CommunicationFPGA &port, bool test) {
 			}	
 		}
 
-		if (!gotFail)
-			cout << endl;
+		/*if (!gotFail)
+			cout << endl;/**/
 	}
 
 	return newInput;
@@ -151,6 +166,7 @@ PhonemeRef readPhonemeFromPort(CommunicationFPGA &port, int p) {
 	PhonemeRef newRef;
 	double waitTime = READ_TIME / NUM_READS;
 	//Quelques lectures par phoneme
+	//cout << "\n\n\n---------------------START--------------------------\n\n";
 	for (int i = 0; i < NUM_READS; i++) {
 		auto initialTime = chrono::high_resolution_clock::now(); //Commence le timer
 
@@ -164,7 +180,7 @@ PhonemeRef readPhonemeFromPort(CommunicationFPGA &port, int p) {
 
 		Sleep(waitTime); //... 
 	}
-
+	//cout << "\n\n------------------END-------------------------------\n\n\n";
 	return newRef;
 }
 
@@ -230,14 +246,15 @@ void loopReadPhoneme(CommunicationFPGA &port, CustomSoundSignature &newSignature
 	while (true) {
 
 		int matchPhoneme = identifyPhoneme(newSignature, readPhonemeFromPort(port));
+
 		if (matchPhoneme < 0)
-			cout << "No match\n";
+			cout << "";
 		else {
-			cout << "Matched: " << matchPhoneme << endl;
+			cout << "Matched: " << PHONEMES[matchPhoneme] << endl;
 			//Appeler la fonction appropriée
 
 			//Pourrais tenter d'identifier le phoneme encore quelques fois ici pour valider (va falloir réduire le temps de lecture de phonème)
 		}
-		activeWait(100);
+		activeWait(10);
 	}
 }
