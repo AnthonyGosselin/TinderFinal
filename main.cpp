@@ -1,14 +1,16 @@
 #include "TinderGUI.h"
 #include <QApplication>
+#include <iostream>
 
 int main(int argc, char *argv[])
 {
    QApplication a(argc, argv);
-   MainWindow w;
-   w.show();
-   //SecondWindow w2;
+   QApplication::setStyle("fusion");
 
-   //w.setPartner(&w2);
-   //w2.setPartner(&w);
+   CommunicationFPGA port;
+   std::cout << "Created port\n";
+   MainWindow w(port);
+   w.show();
+  
    return a.exec();
 }

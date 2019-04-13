@@ -14,6 +14,8 @@
 const int NUM_REP = 2;
 const double CALIB_READ_TIME = 2000; //ms
 
+const bool TESTING = true;
+
 class calibWindow: public QWidget
 {
 
@@ -31,7 +33,7 @@ private:
 	void createObjects();
 	void createLayout();
 	void createMenu();
-	void connectFPGA(bool fpga_connected);
+	void connectFPGA();
 
 	QLabel *mainLabel;
 	QTextEdit *output;

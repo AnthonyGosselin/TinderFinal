@@ -6,13 +6,12 @@ using namespace std;
 
 calibWindow::calibWindow(CommunicationFPGA &port)
 {
-	cout << "Window created\n";
+	setWindowModality(Qt::ApplicationModal);
+	ptr_port = &port;
 
 	createObjects();
 	createLayout();
-	
-	*ptr_port = port;
-	
+	connectFPGA();
 }
 
 calibWindow::~calibWindow()
@@ -24,12 +23,13 @@ calibWindow::~calibWindow()
 	//delete port;*/
 }
 
-void calibWindow::connectFPGA(bool fpga_connected) {
+void calibWindow::connectFPGA() {
 	//FPGA setup
 	if (!ptr_port->estOk()) {
 		cout << "Erreur: " << ptr_port->messageErreur() << endl;
 		writeToOutput("Echec de la connection a la carte FPGA\n");
-		mainButton->setEnabled(false);
+		if (!TESTING)
+			mainButton->setEnabled(false);
 	}
 	else {
 		isConnection = true;
@@ -130,9 +130,8 @@ void calibWindow::mainButtonClicked()
 			lastRecordedPhoneme = new PhonemeRef;
 		}
 
-		//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-		/**\@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/ // isConnection = true;   ///@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ À enlever
-		//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+		if (TESTING)
+			isConnection = true;
 
 		if (isConnection) {
 			if (currRep == 0) {

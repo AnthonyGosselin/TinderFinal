@@ -3,12 +3,15 @@
 #include <qrect.h>
 #include <qdesktopwidget.h>
 #include <qapplication.h>
+#include <string>
+#include <regex>
+
 
 //QString description = "Ceci est la description par default. Pour la modifier, clickez sur option, parametre compte.";
 fluxy core;
 QString path;
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(CommunicationFPGA &port, QWidget *parent)
     : QMainWindow(parent)
 {
 	path = "";
@@ -35,6 +38,9 @@ MainWindow::MainWindow(QWidget *parent)
 	setCentralWidget(m_mainWidget);
 	//setFixedSize(900,800);				//MIEUX DE PAS METTRE DE FIXED SIZE CÔTÉ ERGONOMIE OU PAS GRAVE ????????????????
 	setWindowTitle("Tinder.net - Connexion");
+	cout << "Setting port to pointer\n";
+	ptr_port = &port;
+	cout << "set\n";
 }
 
 MainWindow::~MainWindow()
@@ -219,7 +225,7 @@ void MainWindow::confirmInscription()
 void MainWindow::openSecondWindow()
 {	
 	QWidget *w2 = new QWidget;
-	w2 = new SecondWindow();
+	w2 = new SecondWindow(*ptr_port);
 	
 	w2->setWindowTitle("Bienvenue " + QString::fromStdString(core.getName_U()));
 	w2->show();
@@ -234,7 +240,7 @@ void MainWindow::openSecondWindow()
 
 //DEUXIEME FENETRE----------------------------------------------------------------------------------------------------------------------------
 
-SecondWindow::SecondWindow(QWidget *parent)
+SecondWindow::SecondWindow(CommunicationFPGA &port, QWidget *parent)
 	: QMainWindow(parent)
 {	
 	m_btnQuit = new QPushButton(tr("&Deconnexion"));
@@ -256,6 +262,8 @@ SecondWindow::SecondWindow(QWidget *parent)
 	m_secondMainLayout->addLayout(m_bottomLayout);
 
 	setCentralWidget(m_secondWidget);	
+
+	ptr_port = &port;
 }
 
 SecondWindow::~SecondWindow()
@@ -268,6 +276,14 @@ SecondWindow::~SecondWindow()
 //	m_premiereFenetre = partner;
 //}
 
+void SecondWindow::calibrate() {
+	QWidget *calib = new QWidget;
+	calib = new calibWindow(*ptr_port);
+
+	calib->setMinimumSize(400, 200);
+	calib->show();
+}
+
 void SecondWindow::createMenu2()
 {
 	m_menuBar2 = new QMenuBar;
@@ -278,11 +294,12 @@ void SecondWindow::createMenu2()
 	m_helpMenu = menuBar()->addMenu(tr("&Aide"));
 	m_aboutAppAction = m_helpMenu->addAction(tr("A propos de Tinder"));
 	m_aboutMeAction = m_helpMenu->addAction(tr("A propos de moi"));
+	m_calibrateAction = m_optionMenu->addAction("Calibrer");
 
 	connect(m_parametreCompte, SIGNAL(triggered()), this, SLOT(openThirdWindow()));			//Bouton dans la barre de menu qui ouvre la troisieme fenetre
-
 	connect(m_aboutAppAction, SIGNAL(triggered()), this, SLOT(popUpAboutApp()));			//Les deux boutons du menu d'aide qui ouvre des MessageBox
 	connect(m_aboutMeAction, SIGNAL(triggered()), this, SLOT(popUpAboutMe()));
+	connect(m_calibrateAction, &QAction::triggered, this, &SecondWindow::calibrate);
 }
 
 void SecondWindow::createGroupBoxImage()
@@ -442,7 +459,7 @@ void SecondWindow::deconnexionPopUp()
 
 	if (reply == QMessageBox::Yes) {
 		QWidget *w1 = new QWidget;			//Recréation et réaffichage de la premiere fenetre avec le constructeur de MainWindow
-		w1 = new MainWindow();
+		w1 = new MainWindow(*ptr_port);
 
 		w1->show();
 		close();			//Ferme this, étant la deuxieme fenetre
@@ -482,7 +499,6 @@ ThirdWindow::ThirdWindow(QWidget *parent)
 	//createMenu2();
 	createGroupBoxCompte();
 	
-
 	m_thirdMainLayout->addWidget(m_groupBoxCompte);
 	m_thirdMainLayout->addLayout(m_bottomLayout);
 
@@ -536,11 +552,22 @@ void ThirdWindow::modifPhotoProfil() {
 			//rien ne se passe, garde le même path qu'avant
 		}
 		else {
+			
 			path = "" ;	//vide le path
 			for (int i = 0; i < fileNames.length(); i++) {
-
 				path += fileNames[i];			//path est le path de l'image
 			}
+			
+			//Tentation pour copier l'image choisi dans le répertoire local s'il ne l'était pas déjà
+			/*QRegExp rx("/PhotoProfil/");
+			if (!rx.exactMatch(path)) {
+				cout << "Copying file in local directory\n";
+				QString newName = QString("./PhotoProfil/%1.PNG").arg(randRange(100000, 99999));
+				QFile::copy(path, newName);
+			}
+			else
+				cout << "Image already in local directory\n";*/
+				
 		}
 }
 
