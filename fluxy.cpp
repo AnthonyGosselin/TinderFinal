@@ -155,6 +155,7 @@ int fluxy::listAccounts() {
 			a.name = ligne;
 			getline(fichier, ligne);
 			a.password = ligne;
+
 			getline(fichier, ligne);
 			fillList(ligne, a.Filtre_1);
 			getline(fichier, ligne);
@@ -163,6 +164,7 @@ int fluxy::listAccounts() {
 			fillList(ligne, a.Filtre_3);
 			getline(fichier, ligne);
 			fillList(ligne, a.Filtre_4);
+
 			getline(fichier, ligne);
 			fillList(ligne, a.like);
 			getline(fichier, ligne);
@@ -191,7 +193,7 @@ int fluxy::listAccounts() {
 				a.iDislike[i] = "\0";
 				a.iSuperLike[i] = "\0";
 			}
-			for (int j = 0; j < 4; j++) {
+			for (int j = 0; j < 3; j++) {
 				a.Filtre_1[j] = "\0";
 				a.Filtre_2[j] = "\0";
 				a.Filtre_3[j] = "\0";
@@ -277,25 +279,25 @@ void fluxy::save() {
 			fichier << a.name << endl;
 			fichier << a.password << endl;
 			int j = 0;
-			while (j < 4) {
+			while (j < 3) {
 				fichier << a.Filtre_1[j] << "\t";
 				j++;
 			}
 			fichier << endl;
 			j = 0;
-			while (j < 4) {
+			while (j < 3) {
 				fichier << a.Filtre_2[j] << "\t";
 				j++;
 			}
 			fichier << endl;
 			j = 0;
-			while (j < 4) {
+			while (j < 3) {
 				fichier << a.Filtre_3[j] << "\t";
 				j++;
 			}
 			fichier << endl;
 			j = 0;
-			while (j < 4) {
+			while (j < 3) {
 				fichier << a.Filtre_4[j] << "\t";
 				j++;
 			}
@@ -549,8 +551,8 @@ void fluxy::setPath(string newPath) {
 	tempSave(currentUser, cu);
 }
 
-void fluxy::setFiltre(float *filtre_1, float *filtre_2, float *filtre_3, float *filtre_4) {
-	for (int i = 0; i < 4; i++) {
+void fluxy::setFiltre(double *filtre_1, double *filtre_2, double *filtre_3, double *filtre_4) {
+	for (int i = 0; i < 3; i++) {
 		currentUser.Filtre_1[i] = to_string(filtre_1[i]);
 		currentUser.Filtre_2[i] = to_string(filtre_2[i]);
 		currentUser.Filtre_3[i] = to_string(filtre_3[i]);
@@ -559,9 +561,9 @@ void fluxy::setFiltre(float *filtre_1, float *filtre_2, float *filtre_3, float *
 	tempSave(currentUser, cu);
 }
 
-void fluxy::getFiltre(float *filtre_1, float *filtre_2, float *filtre_3, float *filtre_4) {
+void fluxy::getFiltre(double *filtre_1, double *filtre_2, double *filtre_3, double *filtre_4) {
 	string::size_type sz;
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 3; i++) {
 		filtre_1[i] = stof(currentUser.Filtre_1[i], &sz);
 		filtre_2[i] = stof(currentUser.Filtre_2[i], &sz);
 		filtre_3[i] = stof(currentUser.Filtre_3[i], &sz);

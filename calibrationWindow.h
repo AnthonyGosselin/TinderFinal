@@ -10,15 +10,18 @@
 #include <qscrollbar.h>
 
 #include "traitementPhonemes.h"
+#include "fluxy.h"
 
-const int NUM_REP = 2;
+const int NUM_REP = 1;
 const double CALIB_READ_TIME = 2000; //ms
+
+const bool TESTING = false;
 
 class calibWindow: public QWidget
 {
 
 public:
-	calibWindow(CommunicationFPGA &port);
+	calibWindow(CommunicationFPGA &port, fluxy &core);
 	~calibWindow();
 
 	void writeToOutput(std::string msg, bool writeToTitle = false);
@@ -31,7 +34,7 @@ private:
 	void createObjects();
 	void createLayout();
 	void createMenu();
-	void connectFPGA(bool fpga_connected);
+	void connectFPGA();
 
 	QLabel *mainLabel;
 	QTextEdit *output;
@@ -49,6 +52,7 @@ private:
 	bool canceledLastPhoneme = false;
 
 	CommunicationFPGA *ptr_port;
+	fluxy *ptr_core;
 };
 
 #endif //PCH_H

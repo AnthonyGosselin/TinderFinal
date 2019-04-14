@@ -20,13 +20,15 @@
 #include <qfiledialog.h>
 
 #include "fluxy.h"
+#include "CommunicationFPGA.h"
+#include "calibrationWindow.h"
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = 0);
+    MainWindow(CommunicationFPGA &port, QWidget *parent = 0);
     ~MainWindow();
 
 	//void setPartner(QWidget *partner);
@@ -82,6 +84,8 @@ private:
 	QPushButton* m_btnQuitter;
 	QPushButton* m_btnInscrire;
 	QPushButton *m_btnChoisirImage;
+
+	CommunicationFPGA *ptr_port;
 };
 
 class SecondWindow : public QMainWindow
@@ -89,7 +93,7 @@ class SecondWindow : public QMainWindow
 	Q_OBJECT
 
 public:
-	SecondWindow(QWidget *parent = 0);
+	SecondWindow(CommunicationFPGA &port, QWidget *parent = 0);
 	~SecondWindow();
 
 	//void setPartner(QWidget *partner);
@@ -109,6 +113,14 @@ private:
 	void createMenu2();
 	void createGroupBoxImage();
 	void createGroupBoxAppreciation();
+	void calibrate();
+	void noMoreJudgment();
+	void loadSignature();
+
+	void loopReadPhoneme(CommunicationFPGA &port);
+
+	bool isReading = false;
+	bool breakReading = false;
 
 	QWidget *m_secondWidget;
 
@@ -119,6 +131,7 @@ private:
 	QAction *m_parametreCompte;
 	QAction *m_aboutAppAction;
 	QAction *m_aboutMeAction;
+	QAction *m_calibrateAction;
 	
 	QGroupBox *m_groupBoxImage;
 	QVBoxLayout *m_vLayoutImage;
@@ -137,8 +150,9 @@ private:
 
 	QHBoxLayout *m_bottomLayout;
 	QPushButton *m_btnQuit;
-
-	void noMoreJudgment();
+	
+	CommunicationFPGA *ptr_port;
+	CustomSoundSignature curr_signature;
 };
 
 class ThirdWindow : public QMainWindow
@@ -170,7 +184,6 @@ private:
 	QHBoxLayout *m_bottomLayout;
 	QPushButton *m_btnSave;
 	QPushButton *m_btnCancel;
-	
 
 };
 #endif // MAINWINDOW_H

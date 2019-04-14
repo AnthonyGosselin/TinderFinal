@@ -15,10 +15,10 @@ private:
 	struct info {
 		string name;
 		string password = "none";
-		string Filtre_1[4] = { "0","0","0","0" };
-		string Filtre_2[4] = { "0","0","0","0" };
-		string Filtre_3[4] = { "0","0","0","0" };
-		string Filtre_4[4] = { "0","0","0","0" };
+		string Filtre_1[3] = { "0.755", "0.486", "0.9" }; //En realité c'est des phonemes et non des filtres (leurs valeurs sont les filtres)
+		string Filtre_2[3] = { "0.098", "0.997", "0.922" }; //Calibration: Tony2
+		string Filtre_3[3] = { "0", "1", "0.03" };
+		string Filtre_4[3] = { "0.9", "0.636", "0.306" };
 		string like[100];
 		string dislike[100];
 		string superLike[100];
@@ -61,8 +61,8 @@ public:
 	string getName_P();
 	void setPath(string newPath);
 	void save(); // save all data in a txt fill
-	void setFiltre(float *filtre_1, float *filtre_2, float *filtre_3, float *filtre_4);
-	void getFiltre(float *filtre_1, float *filtre_2, float *filtre_3, float *filtre_4);
+	void setFiltre(double *filtre_1, double *filtre_2, double *filtre_3, double *filtre_4);
+	void getFiltre(double *filtre_1, double *filtre_2, double *filtre_3, double *filtre_4);
 	string getPass();
 
 protected:

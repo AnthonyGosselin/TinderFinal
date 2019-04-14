@@ -4,15 +4,15 @@
 
 using namespace std;
 
-calibWindow::calibWindow(CommunicationFPGA &port)
+calibWindow::calibWindow(CommunicationFPGA &port, fluxy &core)
 {
-	cout << "Window created\n";
+	setWindowModality(Qt::ApplicationModal);
+	ptr_port = &port;
+	ptr_core = &core;
 
 	createObjects();
 	createLayout();
-	
-	*ptr_port = port;
-	
+	connectFPGA();
 }
 
 calibWindow::~calibWindow()
@@ -24,12 +24,13 @@ calibWindow::~calibWindow()
 	//delete port;*/
 }
 
-void calibWindow::connectFPGA(bool fpga_connected) {
+void calibWindow::connectFPGA() {
 	//FPGA setup
 	if (!ptr_port->estOk()) {
 		cout << "Erreur: " << ptr_port->messageErreur() << endl;
 		writeToOutput("Echec de la connection a la carte FPGA\n");
-		mainButton->setEnabled(false);
+		if (!TESTING)
+			mainButton->setEnabled(false);
 	}
 	else {
 		isConnection = true;
@@ -130,9 +131,8 @@ void calibWindow::mainButtonClicked()
 			lastRecordedPhoneme = new PhonemeRef;
 		}
 
-		//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-		/**\@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/ // isConnection = true;   ///@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ À enlever
-		//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+		if (TESTING)
+			isConnection = true;
 
 		if (isConnection) {
 			if (currRep == 0) {
@@ -182,7 +182,7 @@ void calibWindow::mainButtonClicked()
 			for (int i = 0; i < NUM_READS; i++) {
 				auto initialTime = chrono::high_resolution_clock::now(); //Commence le timer
 
-				recordingPhoneme->addInput(getInputFromPort(*ptr_port, true)); //Prend une lecture
+				lastRecordedPhoneme->addInput(getInputFromPort(*ptr_port, true)); //Prend une lecture
 				//lastRecordedPhoneme->addInput(generateInputTest(currPhoneme)); //Valeurs générées aléatoirement pour tester
 				
 				auto endTime = chrono::high_resolution_clock::now(); //Arrête le timer
@@ -234,17 +234,18 @@ void calibWindow::mainButtonClicked()
 		recordingPhoneme->addInput(*lastRecordedPhoneme); //On sauvegarde le dernier phoneme enregistré après que l'utilisateur ait appuyé sur Terminer
 		phonemeRefTab[currPhoneme - 1] = *recordingPhoneme; //On sauvegarder les données dans le tableau de la signature
 
-		//On regroupe le tout dans une signature
-		CustomSoundSignature newSignature;
-		for (int i = 0; i < NUM_PHONEMES; i++) {
-			newSignature.phonemeRefTab[i] = phonemeRefTab[i];
-			cout << "Phoneme #" << i << " ( ";
-			for (int y = 0; y < NUM_FILTERS; y++) {
-				cout << phonemeRefTab[i].referenceTab[y] << (y < NUM_FILTERS - 1? ", ": ")\n");
+		double newTabPhoneme[NUM_PHONEMES][NUM_FILTERS];
+		for (int p = 0; p < NUM_PHONEMES; p++) {
+			cout << "Phoneme #" << p << " ( ";
+			for (int f = 0; f < NUM_FILTERS; f++) {
+				newTabPhoneme[p][f] = phonemeRefTab[p].referenceTab[f];
+				cout << phonemeRefTab[p].referenceTab[f] << (f < NUM_FILTERS - 1 ? ", " : ")\n");
 			}
 		}
 
-		close();
+		ptr_core->setFiltre(newTabPhoneme[0], newTabPhoneme[1], newTabPhoneme[2], newTabPhoneme[3]);
+
+		this->close();
 	}
 }
 		

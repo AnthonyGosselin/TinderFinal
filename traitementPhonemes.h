@@ -12,18 +12,18 @@
 //Qt
 #include <QApplication>
 
-const int NUM_FILTERS = 4;
+const int NUM_FILTERS = 3;
 const int NUM_PHONEMES = 4;
 const double MAX_VALEUR = 255;
-const double DETECTION_TOLERANCE = 0.05; // (en %) Si le signal pour un filtre a un écart plus grand que ce pourcentage, il n'y aura pas de match
-const int NUM_READS = 5;
-const int READ_TIME = 0.5;
+const double DETECTION_TOLERANCE = 0.2; // (en %) Si le signal pour un filtre a un écart plus grand que ce pourcentage, il n'y aura pas de match
+const int NUM_READS = 10;
+const int READ_TIME = 1;
 
 
 const string PHONEMES[NUM_PHONEMES] = {
 	"AH", // 0
 	"EUH", // 1
-	"Ii", // 2
+	"UH", // 2
 	"OH", // 3
 };
 
@@ -32,7 +32,7 @@ const string PHONEMES[NUM_PHONEMES] = {
 class Input
 {
 public:
-	double filterVals[NUM_FILTERS] = { 0,0,0,0 }; //Valeurs en pourcentage (sur 1)
+	double filterVals[NUM_FILTERS] = { 0,0,0 }; //0}; //Valeurs en pourcentage (sur 1)
 
 	Input(double newFilterVals[NUM_FILTERS]);
 	Input(int newFilterVals[NUM_FILTERS]); //Au cas ou l'entree sont des entiers... (un des constructeurs pourrait etre enlevé à l'avenir

@@ -4,20 +4,24 @@
 #include <qdesktopwidget.h>
 #include <qapplication.h>
 #include <qdebug.h>
+#include <string>
+#include <regex>
+
 
 //QString description = "Ceci est la description par default. Pour la modifier, clickez sur option, parametre compte.";
 fluxy core;
 QString path;
+bool paramOpen = false;
 
-MainWindow::MainWindow(QWidget *parent)
-	: QMainWindow(parent)
+MainWindow::MainWindow(CommunicationFPGA &port, QWidget *parent)
+    : QMainWindow(parent)
 {
 	path = "";
 	createMenu();
 	createGroupBoxConnexion();
 	createFormGroupInscrire();
 
-	m_mainWidget = new QWidget(this);
+	m_mainWidget = new QWidget;
 
 	m_btnQuitter = new QPushButton(tr("&Quitter"));
 	m_btnQuitter->setStyleSheet(QString("background-color: lightgreen"));
@@ -43,7 +47,9 @@ MainWindow::MainWindow(QWidget *parent)
 	setCentralWidget(m_mainWidget);
 	//setFixedSize(900,800);				//MIEUX DE PAS METTRE DE FIXED SIZE CÔTÉ ERGONOMIE OU PAS GRAVE ????????????????
 	setWindowTitle("Tinder.net - Connexion");
+
 	setWindowIcon(QIcon("./PhotoProfil/tinderLogo.png"));
+	ptr_port = &port;
 }
 
 MainWindow::~MainWindow()
@@ -252,10 +258,10 @@ void MainWindow::confirmInscription()
 void MainWindow::openSecondWindow()
 {
 	QWidget *w2 = new QWidget;
-	w2 = new SecondWindow();
 
+	w2 = new SecondWindow(*ptr_port, this);
 	w2->setWindowTitle("Bienvenue " + QString::fromStdString(core.getName_U()));
-	w2->show();
+	//w2->show();
 
 	QRect screenGeometry = QApplication::desktop()->screenGeometry();		//Permet de centrer la deuxieme fenetre (w2) au centre de l'écran 
 	int x = (screenGeometry.width() - w2->width()) / 2;
@@ -267,7 +273,7 @@ void MainWindow::openSecondWindow()
 
 //DEUXIEME FENETRE----------------------------------------------------------------------------------------------------------------------------
 
-SecondWindow::SecondWindow(QWidget *parent)
+SecondWindow::SecondWindow(CommunicationFPGA &port, QWidget *parent)
 	: QMainWindow(parent)
 {
 	qDebug() << path << endl;
@@ -298,7 +304,21 @@ SecondWindow::SecondWindow(QWidget *parent)
 	m_secondMainLayout->addWidget(m_groupBoxAppreciation);
 	m_secondMainLayout->addLayout(m_bottomLayout);
 
-	setCentralWidget(m_secondWidget);
+	setCentralWidget(m_secondWidget);	
+
+	ptr_port = &port;
+
+	this->show();
+
+	// On brise s'il y avait une boucle avant
+	if (isReading) {
+		breakReading = true;
+		while (breakReading)
+			activeWait(10);
+	}
+	loadSignature();
+	loopReadPhoneme(port);
+
 }
 
 SecondWindow::~SecondWindow()
@@ -306,10 +326,109 @@ SecondWindow::~SecondWindow()
 	//Destructeur de la deuxiemeWindow (w2)
 }
 
-//void SecondWindow::setPartner(QWidget * partner)
-//{
-//	m_premiereFenetre = partner;
-//}
+void SecondWindow::calibrate() {
+	breakReading = true;
+
+	QWidget *calib = new QWidget;
+	calib = new calibWindow(*ptr_port, core);
+
+	calib->setMinimumSize(400, 200);
+	calib->show();
+}
+
+void SecondWindow::loadSignature() {
+
+	PhonemeRef newPhonemeTab[NUM_PHONEMES];
+	core.getFiltre(newPhonemeTab[0].referenceTab, newPhonemeTab[1].referenceTab, newPhonemeTab[2].referenceTab, newPhonemeTab[3].referenceTab);
+
+	//On regroupe le tout dans une signature
+	cout << "Loading signature...\n";
+	CustomSoundSignature newSignature;
+	for (int i = 0; i < NUM_PHONEMES; i++) {
+		newSignature.phonemeRefTab[i] = newPhonemeTab[i];
+		cout << "Phoneme #" << i << " ( ";
+		for (int y = 0; y < NUM_FILTERS; y++) {
+			cout << newPhonemeTab[i].referenceTab[y] << (y < NUM_FILTERS - 1 ? ", " : ")\n");
+		}
+	}
+
+	curr_signature = newSignature;
+
+}
+
+//Boucle de lecture principale du programme
+void SecondWindow::loopReadPhoneme(CommunicationFPGA &port) {
+	isReading = true;
+	int readsInRow = 0;
+	int lastRead = -1;
+
+	int readsByPhoneme[NUM_PHONEMES] = { 1, 0, 8, 0 };
+
+	cout << "Signature reference: \n";
+	for (int i = 0; i < NUM_PHONEMES; i++) {
+		cout << "Phoneme #" << i << " ( ";
+		for (int y = 0; y < NUM_FILTERS; y++) {
+			cout << curr_signature.phonemeRefTab[i].referenceTab[y] << (y < NUM_FILTERS - 1 ? ", " : ")\n");
+		}
+	}
+
+	while (!breakReading) {
+
+		//if (!paramOpen) {
+			int matchPhoneme = identifyPhoneme(curr_signature, readPhonemeFromPort(port));
+
+			if (matchPhoneme < 0) {
+				//cout << "No match\n";
+				lastRead = matchPhoneme;
+				readsInRow = 0;
+			}
+			else {
+				cout << "Matched: " << matchPhoneme << endl;
+
+				if (matchPhoneme == lastRead) {
+					readsInRow++;
+					cout << "Reads in a row: " << readsInRow << endl;
+
+					if (readsInRow >= readsByPhoneme[matchPhoneme]) {
+						cout << "STREAK MATCH: " << matchPhoneme << endl;
+
+						//Appeler la fonction appropriée
+						switch (matchPhoneme) {
+						case 0:
+							cout << "like user\n";
+							likeUser();
+							break;
+						case 1:
+							cout << "Dislike user\n";
+							dislikeUser();
+							break;
+						case 2:
+							cout << "Open the third window\n";
+							openThirdWindow();
+							break;
+						case 3:
+							cout << "Super like user\n";
+							superlikeUser();
+							break;
+						}
+					}
+				}
+
+				lastRead = matchPhoneme;
+
+				//Pourrais tenter d'identifier le phoneme encore quelques fois ici pour valider (va falloir réduire le temps de lecture de phonème)
+			}
+
+		//}
+		//else
+			//cout << "Param is open\n";
+
+	activeWait(50);
+
+	}
+	breakReading = false;
+	//isReading = false;
+}
 
 void SecondWindow::createMenu2()
 {
@@ -321,11 +440,12 @@ void SecondWindow::createMenu2()
 	m_helpMenu = menuBar()->addMenu(tr("&Aide"));
 	m_aboutAppAction = m_helpMenu->addAction(tr("A propos de Tinder"));
 	m_aboutMeAction = m_helpMenu->addAction(tr("A propos de moi"));
+	m_calibrateAction = m_optionMenu->addAction("Calibrer");
 
 	connect(m_parametreCompte, SIGNAL(triggered()), this, SLOT(openThirdWindow()));			//Bouton dans la barre de menu qui ouvre la troisieme fenetre
-
 	connect(m_aboutAppAction, SIGNAL(triggered()), this, SLOT(popUpAboutApp()));			//Les deux boutons du menu d'aide qui ouvre des MessageBox
 	connect(m_aboutMeAction, SIGNAL(triggered()), this, SLOT(popUpAboutMe()));
+	connect(m_calibrateAction, &QAction::triggered, this, &SecondWindow::calibrate);
 }
 
 void SecondWindow::createGroupBoxImage()
@@ -496,7 +616,7 @@ void SecondWindow::deconnexionPopUp()
 
 	if (reply == QMessageBox::Yes) {
 		QWidget *w1 = new QWidget;			//Recréation et réaffichage de la premiere fenetre avec le constructeur de MainWindow
-		w1 = new MainWindow();
+		w1 = new MainWindow(*ptr_port);
 
 		w1->show();
 		close();			//Ferme this, étant la deuxieme fenetre
@@ -506,10 +626,12 @@ void SecondWindow::deconnexionPopUp()
 
 void SecondWindow::openThirdWindow()
 {
-	QWidget *w3 = new QWidget;				//Création et affichage de la troisieme fenetre avec le constructeur de ThirdWindow
-	w3 = new ThirdWindow();
-	w3->setWindowTitle("Parametre du compte");
-	w3->show();
+	if (!paramOpen) {
+		paramOpen = true;
+		QWidget *w3 = new QWidget;				//Création et affichage de la troisieme fenetre avec le constructeur de ThirdWindow
+		w3 = new ThirdWindow();
+		cout << "after show\n";
+	}
 }
 
 void SecondWindow::noMoreJudgment() {
@@ -568,11 +690,14 @@ ThirdWindow::ThirdWindow(QWidget *parent)
 	m_thirdMainLayout->addLayout(m_bottomLayout);
 
 	setCentralWidget(m_thirdWidget);
+	setWindowTitle("Parametre du compte");
+	show();
 }
 
 ThirdWindow::~ThirdWindow()
 {
-
+	cout << "Close third window\n";
+	paramOpen = false;
 }
 
 void ThirdWindow::createGroupBoxCompte()
@@ -618,15 +743,27 @@ void ThirdWindow::createGroupBoxCompte()
 void ThirdWindow::modifPhotoProfil() {
 
 	QStringList fileNames = QFileDialog::getOpenFileNames(this, tr("Open File"), "/path/to/file/", tr("Png files (*.png)"));
+
 	if (fileNames.isEmpty()) {
 		//rien ne se passe, garde le même path qu'avant
 	}
 	else {
-		path = "";	//vide le path
+			
+		path = "" ;	//vide le path
 		for (int i = 0; i < fileNames.length(); i++) {
-
 			path += fileNames[i];			//path est le path de l'image
 		}
+			
+		//Tentation pour copier l'image choisi dans le répertoire local s'il ne l'était pas déjà
+		/*QRegExp rx("/PhotoProfil/");
+		if (!rx.exactMatch(path)) {
+			cout << "Copying file in local directory\n";
+			QString newName = QString("./PhotoProfil/%1.PNG").arg(randRange(100000, 99999));
+			QFile::copy(path, newName);
+		}
+		else
+			cout << "Image already in local directory\n";*/
+
 	}
 }
 

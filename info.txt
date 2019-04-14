@@ -1,43 +1,71 @@
-3
-nick
-nick
-0	0	0	0	
-0	0	0	0	
-0	0	0	0	
-0	0	0	0	
+5
+aa
+aa
+0.659338	0.660847	1.000000	
+0.133956	0.647050	1.000000	
+0.000000	1.000000	0.028996	
+1.000000	0.493124	0.142383	
 
 
 
-oli	
+rr	rr	rr	rr	rr	rr	rr	rr	rr	rr	rr	
+bb	bb	bb	ff	ff	ff	ff	ff	ff	rr	rr	rr	rr	rr	rr	rr	rr	rr	rr	rr	
+ff	rr	rr	rr	rr	rr	rr	rr	rr	rr	
+aaaaaaaaa
+no path
+bb
+bb
+0.755	0.486	0.9	
+0.098	0.997	0.922	
+0	1	0.03	
+0.9	0.636	0.306	
 
-
-Je suis une coquille vide dépourvu d'âme.
-./PhotoProfil/profilePicture.png
-oli
-oli
-0	0	0	0	
-0	0	0	0	
-0	0	0	0	
-0	0	0	0	
-nick	
-
-
-
-
-
-Je suis une coquille vide dépourvu d'âme.
-./PhotoProfil/profilePicture.png
-salut
-salut
-0	0	0	0	
-0	0	0	0	
-0	0	0	0	
-0	0	0	0	
+aa	aa	aa	
 
 
 
 
+bbbbbbbbbbbbb
+C:/Users/Precision/Desktop/Tinder_olinick/TinderFinal/PhotoProfil/anthony.PNGC:/Users/Precision/Desktop/Tinder_olinick/TinderFinal/PhotoProfil/claudette.PNG
+ff
+ff
+0.755	0.486	0.9	
+0.098	0.997	0.922	
+0	1	0.03	
+0.9	0.636	0.306	
+
+aa	aa	aa	aa	aa	aa	
+aa	
 
 
-Je suis une coquille vide dépourvu d'âme.
-./PhotoProfil/profilePicture.png
+
+fffffffffffff
+C:/Users/Precision/Desktop/Tinder_olinick/TinderFinal/PhotoProfil/jp.PNG
+rr
+rr
+0.755	0.486	0.9	
+0.098	0.997	0.922	
+0	1	0.03	
+0.9	0.636	0.306	
+aa	aa	aa	aa	aa	aa	aa	aa	aa	aa	aa	
+aa	aa	aa	aa	aa	aa	aa	aa	aa	aa	aa	
+aa	aa	aa	aa	aa	aa	aa	aa	aa	
+
+
+
+rrrr
+C:/Users/Precision/Desktop/Tinder_olinick/TinderFinal/PhotoProfil/nicholas.PNG
+ol
+ol
+0.576846	0.625367	1.000000	
+0.023881	0.900000	0.527518	
+0.000000	1.000000	0.016773	
+0.900000	0.649012	0.015476	
+
+
+
+
+
+
+ooooooli
+C:/Users/Precision/Desktop/Tinder_olinick/TinderFinal/PhotoProfil/olivier.PNG
